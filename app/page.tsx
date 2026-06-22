@@ -21,7 +21,10 @@ export default async function HomePage() {
       .from('products')
       .select('*')
       .eq('status', 'available')
+      .eq('is_active', true)
+      .eq('featured', true)
       .order('sort_order', { ascending: true })
+      .order('name', { ascending: true })
       .limit(6);
       
     if (prods) {
@@ -114,10 +117,7 @@ export default async function HomePage() {
                   </div>
                   <div className="flex-1 min-w-0 pr-2">
                     <h3 className="font-semibold text-sm truncate text-gray-900">{product.name}</h3>
-                    {product.description && (
-                      <p className="text-[12px] text-gray-500 line-clamp-1 mb-1">{product.description}</p>
-                    )}
-                    <div className="font-bold text-[#C96A3D] text-sm mt-0.5">
+                    <div className="font-bold text-[#C96A3D] text-sm mt-1">
                       Rp {product.price.toLocaleString('id-ID')}
                     </div>
                   </div>

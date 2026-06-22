@@ -2,21 +2,29 @@
 
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
-import { Search } from 'lucide-react';
+import { Search, Plus, ShoppingCart } from 'lucide-react';
 import Image from 'next/image';
+import { useCartStore } from '@/lib/store/cart';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 interface Product {
   id: string;
   name: string;
-  description: string;
   price: number;
   image_url: string;
   status: string;
+  featured: boolean;
+  is_active: boolean;
 }
 
-export function CatalogView({ initialProducts }: { initialProducts: Product[] }) {
+export function CatalogView({ initialProducts, userId }: { initialProducts: Product[], userId: string | null }) {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'all'|'available'|'sold_out_today'>('all');
+  const router = useRouter();
+  
+  const addItem = useCartStore((state) => state.addItem);
+  const cartItems = useCartStore((state) => state.getItems(userId));
 
   const filteredProducts = initialProducts.filter(product => {
      const matchesSearch = product.name.toLowerCase().includes(search.toLowerCase());
@@ -24,8 +32,28 @@ export function CatalogView({ initialProducts }: { initialProducts: Product[] })
      return matchesSearch && matchesFilter;
   });
 
+  const handleAddToCart = (product: Product) => {
+    if (!userId) {
+       toast.error('Silakan login terlebih dahulu');
+       router.push('/login');
+       return;
+    }
+    
+    addItem(userId, {
+      product_id: product.id,
+      name: product.name,
+      price: product.price,
+      image_url: product.image_url,
+      quantity: 30, // Minimum 30 as per rules
+    });
+    
+    toast.success(`${product.name} ditambahkan ke keranjang`);
+  };
+
+  const totalCartItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+
   return (
-    <div className="flex flex-col space-y-4">
+    <div className="flex flex-col space-y-4 pb-24">
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
         <Input 
@@ -81,21 +109,59 @@ export function CatalogView({ initialProducts }: { initialProducts: Product[] })
                 )}
               </div>
               <div className="flex-1 min-w-0 pr-2">
-                <div className="flex items-start justify-between gap-1 mb-0.5">
-                   <h3 className={`font-semibold text-sm truncate ${product.status==='sold_out_today' ? 'text-gray-500' : 'text-gray-900'}`}>{product.name}</h3>
-                   {product.status === 'sold_out_today' && (
-                     <span className="shrink-0 inline-flex px-1.5 py-0.5 bg-orange-100 text-orange-700 text-[9px] font-bold uppercase tracking-wider rounded">Habis</span>
-                   )}
+                <div className="flex items-start justify-between gap-1 mb-1">
+                   <h3 className={`font-semibold text-sm truncate ${product.status==='sold_out_today' ? 'text-gray-500' : 'text-gray-900'}`}>
+                     {product.name}
+                   </h3>
+                   <div className="flex gap-1">
+                     {product.featured && product.status !== 'sold_out_today' && (
+                       <span className="shrink-0 inline-flex px-1.5 py-0.5 bg-[#C96A3D] text-white text-[9px] font-bold uppercase tracking-wider rounded">Unggulan</span>
+                     )}
+                     {product.status === 'sold_out_today' && (
+                       <span className="shrink-0 inline-flex px-1.5 py-0.5 bg-orange-100 text-orange-700 text-[9px] font-bold uppercase tracking-wider rounded">Habis</span>
+                     )}
+                   </div>
                 </div>
-                {product.description && (
-                  <p className="text-[12px] text-gray-500 line-clamp-1 mb-1.5">{product.description}</p>
-                )}
-                <div className="font-bold text-[#C96A3D] text-sm">
-                  Rp {product.price.toLocaleString('id-ID')}
+                <div className="flex items-center justify-between mt-2">
+                  <div className="font-bold text-[#C96A3D] text-sm">
+                    Rp {product.price.toLocaleString('id-ID')}
+                  </div>
+                  {product.status !== 'sold_out_today' && (
+                    <button 
+                      onClick={() => handleAddToCart(product)}
+                      className="p-1.5 bg-orange-50 text-[#C96A3D] rounded-full hover:bg-orange-100 transition flex items-center justify-center"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {totalCartItems > 0 && (
+        <div className="fixed bottom-20 left-0 right-0 p-4 md:left-64 md:bottom-6 pointer-events-none z-40">
+          <div className="max-w-md mx-auto relative">
+             <button 
+               onClick={() => router.push('/cart')}
+               className="pointer-events-auto w-full bg-[#C96A3D] text-white p-4 rounded-[16px] shadow-xl flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#C96A3D] transition-transform active:scale-95"
+             >
+               <div className="flex items-center gap-3">
+                 <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center relative">
+                   <ShoppingCart className="w-5 h-5" />
+                 </div>
+                 <div className="text-left">
+                   <div className="text-xs font-medium text-white/80">Total Pesanan</div>
+                   <div className="font-bold">{cartItems.length} Kue ({totalCartItems} pcs)</div>
+                 </div>
+               </div>
+               <div className="font-semibold">
+                 Lihat Keranjang
+               </div>
+             </button>
+          </div>
         </div>
       )}
     </div>

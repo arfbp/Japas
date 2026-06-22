@@ -16,9 +16,9 @@ const phoneSchema = z.object({
     .min(1, 'Nomor harus diisi')
     .min(9, 'Minimal 9 angka')
     .max(15, 'Maksimal 15 angka')
-    .regex(/^[1-9][0-9]*$/, 'Masukkan nomor langsung tanpa 0 setelah +62')
+    .regex(/^[1-9][0-9]*$/, 'Gunakan format +62 tanpa angka 0 di depan')
     .refine((val) => !val.startsWith('0'), {
-      message: 'Masukkan nomor langsung tanpa 0 setelah +62',
+      message: 'Gunakan format +62 tanpa angka 0 di depan',
     })
     .refine((val) => !val.startsWith('62'), {
       message: 'Masukkan nomor langsung tanpa 0 setelah +62',

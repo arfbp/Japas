@@ -49,6 +49,7 @@ export async function AdminLayout({ children }: { children: ReactNode }) {
           <nav className="hidden md:flex gap-4">
             <Link href="/admin" className="text-sm text-gray-300 hover:text-white transition-colors">Dashboard</Link>
             <Link href="/admin/products" className="text-sm text-gray-300 hover:text-white transition-colors">Katalog Kue</Link>
+            <Link href="/admin/orders" className="text-sm text-gray-300 hover:text-white transition-colors">Pesanan</Link>
           </nav>
         </div>
         <UserMenu profile={profile} email={user?.email!} />
@@ -58,6 +59,7 @@ export async function AdminLayout({ children }: { children: ReactNode }) {
       <div className="w-full bg-gray-800 px-4 md:px-8 py-2 md:hidden flex gap-4 overflow-x-auto">
          <Link href="/admin" className="text-sm text-gray-300 whitespace-nowrap pt-1 pb-1">Dashboard</Link>
          <Link href="/admin/products" className="text-sm text-gray-300 whitespace-nowrap pt-1 pb-1">Katalog Kue</Link>
+         <Link href="/admin/orders" className="text-sm text-gray-300 whitespace-nowrap pt-1 pb-1">Pesanan</Link>
       </div>
       <main className="flex-1 w-full max-w-7xl px-4 md:px-8 py-6">
         <PageTransition className="flex-1 flex flex-col w-full">

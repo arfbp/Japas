@@ -20,8 +20,10 @@
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.108.2",
     "autoprefixer": "^10.4.21",
+    "browser-image-compression": "^2.0.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "date-fns": "^4.4.0",
     "lucide-react": "^0.553.0",
     "motion": "^12.23.24",
     "next": "^15.4.9",
@@ -31,7 +33,8 @@
     "react-hook-form": "^7.80.0",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.3.1",
-    "zod": "^4.4.3"
+    "zod": "^4.4.3",
+    "zustand": "^5.0.14"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "4.1.11",

@@ -57,8 +57,13 @@ export default async function AdminProductsPage() {
                             )}
                           </div>
                           <div>
-                            <div className="font-medium text-gray-900">{product.name}</div>
-                            {product.description && <div className="text-xs text-gray-500 truncate max-w-[200px]">{product.description}</div>}
+                            <div className="font-medium text-gray-900 flex items-center gap-2">
+                              {product.name}
+                              {product.featured && (
+                                <span className="bg-[#C96A3D] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-sm tracking-wider uppercase">Pilihan</span>
+                              )}
+                            </div>
+                            {!product.is_active && <div className="text-xs text-red-500 font-medium">Nonaktif</div>}
                           </div>
                         </div>
                       </td>

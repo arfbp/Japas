@@ -15,10 +15,11 @@ import Image from 'next/image';
 
 const productSchema = z.object({
   name: z.string().min(1, 'Nama wajib diisi'),
-  description: z.string().optional(),
   price: z.coerce.number().min(1, 'Harga wajib diisi'),
   status: z.enum(['available', 'sold_out_today', 'inactive']),
   sort_order: z.coerce.number().default(0),
+  featured: z.boolean().default(false),
+  is_active: z.boolean().default(true),
 });
 
 type ProductFormValues = z.infer<typeof productSchema>;
@@ -33,10 +34,11 @@ export default function ProductForm({ product }: { product?: any }) {
     resolver: zodResolver(productSchema) as any,
     defaultValues: {
       name: product?.name || '',
-      description: product?.description || '',
       price: product?.price || 0,
       status: product?.status || 'available',
       sort_order: product?.sort_order || 0,
+      featured: product?.featured ?? false,
+      is_active: product?.is_active ?? true,
     },
   });
 
@@ -80,10 +82,11 @@ export default function ProductForm({ product }: { product?: any }) {
 
       const productData = {
         name: data.name,
-        description: data.description,
         price: data.price,
         status: data.status,
         sort_order: data.sort_order,
+        featured: data.featured,
+        is_active: data.is_active,
         image_url: imageUrl,
       };
 
@@ -154,14 +157,27 @@ export default function ProductForm({ product }: { product?: any }) {
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="description">Deskripsi (Opsional)</Label>
-        <textarea
-          id="description"
-          {...register('description')}
-          disabled={isLoading}
-          className="flex min-h-[80px] w-full rounded-[10px] border border-gray-200 bg-white px-3 py-2 text-sm shadow-sm placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#C96A3D] disabled:cursor-not-allowed disabled:opacity-50"
-        />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            id="featured"
+            className="rounded border-gray-300 text-[#C96A3D] focus:ring-[#C96A3D] w-4 h-4"
+            {...register('featured')}
+            disabled={isLoading}
+          />
+          <Label htmlFor="featured" className="font-medium cursor-pointer">Produk Unggulan (Featured)</Label>
+        </div>
+        <div className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            id="is_active"
+            className="rounded border-gray-300 text-[#C96A3D] focus:ring-[#C96A3D] w-4 h-4"
+            {...register('is_active')}
+            disabled={isLoading}
+          />
+          <Label htmlFor="is_active" className="font-medium cursor-pointer">Produk Aktif</Label>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
