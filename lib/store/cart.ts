@@ -19,6 +19,8 @@ interface CartState {
   getCartTotal: (userId: string | null | undefined) => number;
 }
 
+const EMPTY_ARRAY: CartItem[] = [];
+
 export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
@@ -86,12 +88,12 @@ export const useCartStore = create<CartState>()(
          }));
       },
       getItems: (userId) => {
-         if (!userId) return [];
-         return get().itemsByUserId[userId] || [];
+         if (!userId) return EMPTY_ARRAY;
+         return get().itemsByUserId[userId] || EMPTY_ARRAY;
       },
       getCartTotal: (userId) => {
          if (!userId) return 0;
-         const items = get().itemsByUserId[userId] || [];
+         const items = get().itemsByUserId[userId] || EMPTY_ARRAY;
          return items.reduce((total, item) => total + (item.price * item.quantity), 0);
       }
     }),

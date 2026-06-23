@@ -67,7 +67,7 @@ export default function CompleteProfileForm() {
       if (error) throw error;
 
       toast.success('Profil berhasil disimpan');
-      router.push('/catalog');
+      router.push('/katalog');
       router.refresh();
     } catch (error: any) {
       toast.error(error.message || 'Terjadi kesalahan');

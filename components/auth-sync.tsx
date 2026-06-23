@@ -48,7 +48,8 @@ export function AuthSync() {
     return () => {
       subscription.unsubscribe();
     };
-  }, [router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return null;
 }
