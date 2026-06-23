@@ -16,12 +16,14 @@ interface CheckoutViewProps {
   storeSettings: any;
 }
 
+const EMPTY_ARRAY: any[] = [];
+
 export function CheckoutView({ userId, profile, storeSettings }: CheckoutViewProps) {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   
-  const cartItems = useCartStore((state) => state.getItems(userId));
+  const cartItems = useCartStore((state) => (userId ? state.itemsByUserId[userId] : undefined) || EMPTY_ARRAY);
   const getCartTotal = useCartStore((state) => state.getCartTotal);
   const clearCart = useCartStore((state) => state.clearCart);
   

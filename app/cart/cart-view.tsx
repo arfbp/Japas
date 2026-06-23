@@ -7,10 +7,12 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
+const EMPTY_ARRAY: any[] = [];
+
 export function CartView({ userId }: { userId: string }) {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
-  const cartItems = useCartStore((state) => state.getItems(userId));
+  const cartItems = useCartStore((state) => (userId ? state.itemsByUserId[userId] : undefined) || EMPTY_ARRAY);
   const updateQuantity = useCartStore((state) => state.updateQuantity);
   const removeItem = useCartStore((state) => state.removeItem);
   const getCartTotal = useCartStore((state) => state.getCartTotal);

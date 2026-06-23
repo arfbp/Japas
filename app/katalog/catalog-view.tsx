@@ -18,13 +18,15 @@ interface Product {
   is_active: boolean;
 }
 
+const EMPTY_ARRAY: any[] = [];
+
 export function CatalogView({ initialProducts, userId }: { initialProducts: Product[], userId: string | null }) {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'all'|'available'|'sold_out_today'>('all');
   const router = useRouter();
   
   const addItem = useCartStore((state) => state.addItem);
-  const cartItems = useCartStore((state) => state.getItems(userId));
+  const cartItems = useCartStore((state) => (userId ? state.itemsByUserId[userId] : undefined) || EMPTY_ARRAY);
 
   const filteredProducts = initialProducts.filter(product => {
      const matchesSearch = product.name.toLowerCase().includes(search.toLowerCase());

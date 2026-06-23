@@ -11,7 +11,6 @@ export default async function CatalogPage() {
     .from('products')
     .select('*')
     .in('status', ['available', 'sold_out_today'])
-    .eq('is_active', true)
     .order('sort_order', { ascending: true })
     .order('name', { ascending: true });
 

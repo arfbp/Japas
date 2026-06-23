@@ -21,7 +21,6 @@ export default async function HomePage() {
       .from('products')
       .select('*')
       .eq('status', 'available')
-      .eq('is_active', true)
       .eq('featured', true)
       .order('sort_order', { ascending: true })
       .order('name', { ascending: true })
