@@ -10,10 +10,13 @@ export const metadata: Metadata = {
   description: 'Platform pemesanan kue jajanan pasar',
 };
 
+import { AuthSync } from '@/components/auth-sync';
+
 export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
     <html lang="en">
       <body className={`${inter.variable} font-sans bg-[#FFF7ED] text-gray-900 antialiased`} suppressHydrationWarning>
+        <AuthSync />
         {children}
         <Toaster />
       </body>

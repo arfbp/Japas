@@ -56,8 +56,13 @@ export default function CompleteProfileForm() {
 
       const { error } = await supabase
         .from('profiles')
-        .update({ phone_number: formattedPhone })
-        .eq('id', userData.user.id);
+        .upsert({
+          id: userData.user.id,
+          email: userData.user.email || '',
+          full_name: userData.user.user_metadata?.full_name || userData.user.user_metadata?.name || '',
+          phone_number: formattedPhone,
+          role: 'customer'
+        }, { onConflict: 'id' });
 
       if (error) throw error;
 
