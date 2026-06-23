@@ -21,14 +21,15 @@ export default function LoginForm() {
     const supabase = createClient();
     
     // In production we would normally use relative URLs, but for auth we pass the full redirect
-    const origin = window.location.origin;
-    
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${origin}/auth/callback?next=${encodeURIComponent(next)}`,
+        redirectTo: `${siteUrl}/auth/callback?next=${encodeURIComponent(next)}`,
       },
     });
+    setIsLoading(false);
   };
 
   return (
