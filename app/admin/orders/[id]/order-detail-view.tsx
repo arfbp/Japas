@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client';
 import { updateOrderStatus } from '../actions';
 import { toast } from 'sonner';
 import { generateWhatsAppMessage, getWhatsAppURL } from '@/lib/whatsapp';
+import { normalizePhone } from '@/lib/phone';
 import { ChevronLeft, Image as ImageIcon, MessageCircle, Package, Calendar, User, Clock, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 
@@ -80,7 +81,8 @@ export function AdminOrderDetailView({ orderId, adminId }: AdminOrderDetailViewP
   const openCustomerWA = (newStatus: string) => {
     if (!order) return;
     const msg = generateWhatsAppMessage(newStatus, order, 'admin_to_customer');
-    const url = getWhatsAppURL(order.customer_phone, msg);
+    const normalizedCustomerPhone = normalizePhone(order.customer_phone);
+    const url = getWhatsAppURL(normalizedCustomerPhone, msg);
     window.open(url, '_blank');
   };
 
@@ -165,7 +167,7 @@ export function AdminOrderDetailView({ orderId, adminId }: AdminOrderDetailViewP
                 <MessageCircle className="w-5 h-5 text-gray-400 mt-0.5" />
                 <div>
                   <p className="text-sm font-medium text-gray-500">Nomor WhatsApp</p>
-                  <p className="text-base text-gray-900 font-medium">{order.customer_phone}</p>
+                  <p className="text-base text-gray-900 font-medium">{normalizePhone(order.customer_phone)}</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">

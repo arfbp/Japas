@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { addDays, format, isAfter, setHours, setMinutes } from 'date-fns';
 import { createOrder } from './actions';
 import { Loader2 } from 'lucide-react';
+import { normalizePhone } from '@/lib/phone';
 
 interface CheckoutViewProps {
   userId: string;
@@ -67,7 +68,9 @@ export function CheckoutView({ userId, profile, storeSettings }: CheckoutViewPro
     
     // Validations
     if (!name.trim()) return toast.error('Nama lengkap wajib diisi');
-    if (!phone.startsWith('+62') || phone.startsWith('+620')) {
+    
+    const normalizedPhone = normalizePhone(phone);
+    if (!normalizedPhone.startsWith('+62') || normalizedPhone.startsWith('+620')) {
       return toast.error('Gunakan format +62 tanpa angka 0 di depan');
     }
     if (!pickupDate) return toast.error('Tanggal pickup wajib dipilih');
@@ -80,7 +83,7 @@ export function CheckoutView({ userId, profile, storeSettings }: CheckoutViewPro
       const res = await createOrder({
         customer_id: userId,
         customer_name: name,
-        customer_phone: phone,
+        customer_phone: phone, // Do not change how it is stored
         pickup_date: pickupDate,
         pickup_address: storeSettings?.pickup_address || 'Alamat tidak tersedia',
         notes: notes,

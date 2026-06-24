@@ -9,6 +9,7 @@ import { Loader2, UploadCloud, CheckCircle2, MessageCircle } from 'lucide-react'
 import imageCompression from 'browser-image-compression';
 
 import { generateWhatsAppMessage, getWhatsAppURL } from '@/lib/whatsapp';
+import { normalizePhone } from '@/lib/phone';
 
 interface PaymentViewProps {
   order: any;
@@ -111,7 +112,8 @@ export function PaymentView({ order, storeSettings, user, existingProof }: Payme
      if (!storeSettings?.whatsapp_admin) return;
      
      const text = generateWhatsAppMessage(statusStr, order, 'customer_to_admin');
-     const url = getWhatsAppURL(storeSettings.whatsapp_admin, text);
+     const normalizedAdminPhone = normalizePhone(storeSettings.whatsapp_admin);
+     const url = getWhatsAppURL(normalizedAdminPhone, text);
      
      window.open(url, '_blank');
   };

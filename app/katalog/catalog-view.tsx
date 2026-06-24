@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
-import { Search, Plus, ShoppingCart } from 'lucide-react';
+import { Search, Plus, ShoppingCart, Minus, X } from 'lucide-react';
 import Image from 'next/image';
 import { useCartStore } from '@/lib/store/cart';
 import { useRouter } from 'next/navigation';
@@ -20,9 +20,158 @@ interface Product {
 
 const EMPTY_ARRAY: any[] = [];
 
+function AddToCartModal({ 
+  product, 
+  isOpen, 
+  onClose, 
+  onConfirm 
+}: { 
+  product: Product | null; 
+  isOpen: boolean; 
+  onClose: () => void; 
+  onConfirm: (quantity: number) => void;
+}) {
+  const [quantityStr, setQuantityStr] = useState('30');
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setQuantityStr('30');
+      setError('');
+    }
+  }, [isOpen]);
+
+  if (!isOpen || !product) return null;
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setQuantityStr(val);
+    
+    if (val === '') {
+      setError('Minimal pemesanan 30 pcs');
+      return;
+    }
+    
+    const num = parseInt(val, 10);
+    if (isNaN(num) || num < 30) {
+      setError('Minimal pemesanan 30 pcs');
+    } else {
+      setError('');
+    }
+  };
+
+  const handleBlur = () => {
+    const num = parseInt(quantityStr, 10);
+    if (isNaN(num) || num < 30) {
+      setQuantityStr('30');
+      setError('');
+    }
+  };
+
+  const handleDecrement = () => {
+    const current = parseInt(quantityStr, 10) || 30;
+    if (current > 30) {
+      const next = current - 1;
+      setQuantityStr(next.toString());
+      setError('');
+    }
+  };
+
+  const handleIncrement = () => {
+    const current = parseInt(quantityStr, 10) || 30;
+    const next = current + 1;
+    setQuantityStr(next.toString());
+    setError('');
+  };
+
+  const currentNum = parseInt(quantityStr, 10) || 0;
+  const isInvalid = isNaN(currentNum) || currentNum < 30;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+      <div 
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
+        onClick={onClose}
+      />
+      
+      <div className="bg-white w-full sm:max-w-sm rounded-t-[20px] sm:rounded-[20px] shadow-xl z-10 p-6 animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-200">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-bold text-lg text-gray-900">Tambah Pesanan</h3>
+          <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 rounded-full bg-gray-50 hover:bg-gray-100 transition">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        
+        <div className="flex gap-4 mb-6 pb-6 border-b border-gray-100">
+          <div className="w-20 h-20 shrink-0 bg-gray-100 rounded-[12px] overflow-hidden relative border border-gray-100 flex items-center justify-center text-2xl">
+            {product.image_url ? (
+               <Image src={product.image_url} alt={product.name} fill className="object-cover" unoptimized />
+            ) : (
+               '🥟'
+            )}
+          </div>
+          <div className="flex-1 flex flex-col justify-center">
+            <h4 className="font-semibold text-gray-900 mb-1 leading-tight">{product.name}</h4>
+            <div className="font-bold text-[#C96A3D]">Rp {product.price.toLocaleString('id-ID')} / pcs</div>
+          </div>
+        </div>
+        
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Jumlah (Minimal 30 pcs)</label>
+          <div className="flex items-center justify-center border border-gray-200 rounded-[12px] bg-gray-50 p-1 focus-within:ring-2 focus-within:ring-[#C96A3D] focus-within:border-transparent transition-all overflow-hidden h-14">
+            <button 
+              onClick={handleDecrement}
+              disabled={currentNum <= 30}
+              className="w-12 h-full flex items-center justify-center text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-200 rounded-[8px] transition"
+            >
+              <Minus className="w-5 h-5" />
+            </button>
+            <input
+              type="number"
+              value={quantityStr}
+              onChange={handleInputChange}
+              onBlur={handleBlur}
+              className="flex-1 h-full text-center font-bold text-xl text-gray-900 bg-transparent border-none focus:outline-none appearance-none"
+              style={{ WebkitAppearance: 'none', margin: 0 }}
+              min="30"
+            />
+            <button 
+              onClick={handleIncrement}
+              className="w-12 h-full flex items-center justify-center text-gray-600 hover:bg-gray-200 rounded-[8px] transition"
+            >
+              <Plus className="w-5 h-5" />
+            </button>
+          </div>
+          {error && (
+            <p className="text-sm text-red-500 mt-2 font-medium text-center">{error}</p>
+          )}
+        </div>
+        
+        <div className="flex flex-col gap-2">
+          <button 
+            disabled={isInvalid}
+            onClick={() => onConfirm(currentNum)}
+            className="w-full h-12 bg-[#C96A3D] hover:bg-[#b05a30] text-white font-semibold rounded-[12px] disabled:opacity-50 disabled:cursor-not-allowed transition"
+          >
+            Tambah ke Keranjang
+          </button>
+          <button 
+            onClick={onClose}
+            className="w-full h-12 bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 font-semibold rounded-[12px] transition"
+          >
+            Batal
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function CatalogView({ initialProducts, userId }: { initialProducts: Product[], userId: string | null }) {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'all'|'available'|'sold_out_today'>('all');
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const router = useRouter();
   
   const addItem = useCartStore((state) => state.addItem);
@@ -34,25 +183,28 @@ export function CatalogView({ initialProducts, userId }: { initialProducts: Prod
      return matchesSearch && matchesFilter;
   });
 
-  const handleAddToCart = (product: Product) => {
+  const handleOpenModal = (product: Product) => {
     if (!userId) {
        toast.error('Silakan login terlebih dahulu');
        router.push('/login');
        return;
     }
-    
-    const existingItem = cartItems.find(i => i.product_id === product.id);
-    const quantityToAdd = existingItem ? 1 : 30;
+    setSelectedProduct(product);
+  };
 
+  const handleConfirmAdd = (quantity: number) => {
+    if (!userId || !selectedProduct) return;
+    
     addItem(userId, {
-      product_id: product.id,
-      name: product.name,
-      price: product.price,
-      image_url: product.image_url,
-      quantity: quantityToAdd,
+      product_id: selectedProduct.id,
+      name: selectedProduct.name,
+      price: selectedProduct.price,
+      image_url: selectedProduct.image_url,
+      quantity: quantity,
     });
     
-    toast.success(`${product.name} ditambahkan ke keranjang`);
+    toast.success(`${selectedProduct.name} ditambahkan ke keranjang`);
+    setSelectedProduct(null);
   };
 
   const totalCartItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
@@ -133,7 +285,7 @@ export function CatalogView({ initialProducts, userId }: { initialProducts: Prod
                   </div>
                   {product.status !== 'sold_out_today' && (
                     <button 
-                      onClick={() => handleAddToCart(product)}
+                      onClick={() => handleOpenModal(product)}
                       className="p-1.5 bg-orange-50 text-[#C96A3D] rounded-full hover:bg-orange-100 transition flex items-center justify-center"
                     >
                       <Plus className="w-4 h-4" />
@@ -169,6 +321,13 @@ export function CatalogView({ initialProducts, userId }: { initialProducts: Prod
           </div>
         </div>
       )}
+
+      <AddToCartModal 
+        product={selectedProduct}
+        isOpen={!!selectedProduct}
+        onClose={() => setSelectedProduct(null)}
+        onConfirm={handleConfirmAdd}
+      />
     </div>
   );
 }

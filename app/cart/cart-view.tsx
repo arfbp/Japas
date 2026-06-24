@@ -17,7 +17,6 @@ function CartItemCard({ item, userId, updateQuantity, removeItem }: any) {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setInputValue(item.quantity.toString());
     if (item.quantity >= 30) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setError('');
     }
   }, [item.quantity]);

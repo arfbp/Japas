@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 
 import { generateWhatsAppMessage, getWhatsAppURL } from '@/lib/whatsapp';
+import { normalizePhone } from '@/lib/phone';
 
 interface OrderTrackingViewProps {
   order: any;
@@ -72,7 +73,8 @@ export function OrderTrackingView({ order: initialOrder, items, history: initial
      if (!storeSettings?.whatsapp_admin) return;
 
      const text = generateWhatsAppMessage(order.status, order, 'customer_to_admin');
-     const url = getWhatsAppURL(storeSettings.whatsapp_admin, text);
+     const normalizedAdminPhone = normalizePhone(storeSettings.whatsapp_admin);
+     const url = getWhatsAppURL(normalizedAdminPhone, text);
      
      window.open(url, '_blank');
   };
@@ -156,7 +158,7 @@ export function OrderTrackingView({ order: initialOrder, items, history: initial
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-gray-500">Informasi Pemesan</span>
-            <span className="font-medium text-gray-900 text-right">{order.customer_name}<br/>{order.customer_phone}</span>
+            <span className="font-medium text-gray-900 text-right">{order.customer_name}<br/>{normalizePhone(order.customer_phone)}</span>
           </div>
           {order.notes && (
             <div className="flex flex-col mt-2 p-3 bg-gray-50 rounded-[8px] text-sm">
