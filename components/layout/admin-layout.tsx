@@ -13,7 +13,7 @@ export async function AdminLayout({ children }: { children: ReactNode }) {
         <header className="w-full h-14 sm:h-16 bg-gray-900 text-white flex items-center px-4 md:px-8 justify-between sticky top-0 z-50">
           <div className="flex items-center gap-2 sm:gap-3">
             <Store className="w-5 h-5 text-gray-400" />
-            <Link href="/admin" className="font-bold text-white text-[17px] sm:text-lg">Admin Panel</Link>
+            <Link href="/admin/orders" className="font-bold text-white text-[17px] sm:text-lg">Admin Panel</Link>
           </div>
         </header>
         <main className="flex-1 w-full max-w-7xl px-4 md:px-8 py-6 flex items-center justify-center">
@@ -44,12 +44,11 @@ export async function AdminLayout({ children }: { children: ReactNode }) {
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2 sm:gap-3">
             <Store className="w-5 h-5 text-gray-400" />
-            <Link href="/admin" className="font-bold text-white text-[17px] sm:text-lg">Admin Panel</Link>
+            <Link href="/admin/orders" className="font-bold text-white text-[17px] sm:text-lg">Admin Panel</Link>
           </div>
           <nav className="hidden md:flex gap-4">
-            <Link href="/admin" className="text-sm text-gray-300 hover:text-white transition-colors">Dashboard</Link>
-            <Link href="/admin/products" className="text-sm text-gray-300 hover:text-white transition-colors">Katalog Kue</Link>
-            <Link href="/admin/orders" className="text-sm text-gray-300 hover:text-white transition-colors">Pesanan</Link>
+            <Link href="/admin/orders" className="text-sm text-gray-300 hover:text-white transition-colors">Kelola Pesanan</Link>
+            <Link href="/admin/products" className="text-sm text-gray-300 hover:text-white transition-colors">Kelola Produk</Link>
           </nav>
         </div>
         <UserMenu profile={profile} email={user?.email!} />
@@ -57,9 +56,8 @@ export async function AdminLayout({ children }: { children: ReactNode }) {
       
       {/* Mobile nav items */}
       <div className="w-full bg-gray-800 px-4 md:px-8 py-2 md:hidden flex gap-4 overflow-x-auto">
-         <Link href="/admin" className="text-sm text-gray-300 whitespace-nowrap pt-1 pb-1">Dashboard</Link>
-         <Link href="/admin/products" className="text-sm text-gray-300 whitespace-nowrap pt-1 pb-1">Katalog Kue</Link>
-         <Link href="/admin/orders" className="text-sm text-gray-300 whitespace-nowrap pt-1 pb-1">Pesanan</Link>
+         <Link href="/admin/orders" className="text-sm text-gray-300 whitespace-nowrap pt-1 pb-1">Kelola Pesanan</Link>
+         <Link href="/admin/products" className="text-sm text-gray-300 whitespace-nowrap pt-1 pb-1">Kelola Produk</Link>
       </div>
       <main className="flex-1 w-full max-w-7xl px-4 md:px-8 py-6">
         <PageTransition className="flex-1 flex flex-col w-full">

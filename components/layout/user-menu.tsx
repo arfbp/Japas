@@ -29,6 +29,11 @@ export function UserMenu({ profile, email }: UserMenuProps) {
 
   return (
     <div className="flex items-center gap-4">
+      {profile?.role === 'admin' && (
+        <Link href="/admin/orders" className="text-sm font-semibold text-[#C96A3D] hover:underline">
+          Admin Panel
+        </Link>
+      )}
       <Link href="/profile" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
         <div className="w-8 h-8 rounded-full bg-[#C96A3D] text-white flex items-center justify-center text-xs font-medium">
           {getInitials(profile?.full_name)}
