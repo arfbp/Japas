@@ -41,12 +41,15 @@ export function CatalogView({ initialProducts, userId }: { initialProducts: Prod
        return;
     }
     
+    const existingItem = cartItems.find(i => i.product_id === product.id);
+    const quantityToAdd = existingItem ? 1 : 30;
+
     addItem(userId, {
       product_id: product.id,
       name: product.name,
       price: product.price,
       image_url: product.image_url,
-      quantity: 30, // Minimum 30 as per rules
+      quantity: quantityToAdd,
     });
     
     toast.success(`${product.name} ditambahkan ke keranjang`);

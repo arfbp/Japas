@@ -9,6 +9,130 @@ import { useEffect, useState } from 'react';
 
 const EMPTY_ARRAY: any[] = [];
 
+function CartItemCard({ item, userId, updateQuantity, removeItem }: any) {
+  const [inputValue, setInputValue] = useState(item.quantity.toString());
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setInputValue(item.quantity.toString());
+    if (item.quantity >= 30) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setError('');
+    }
+  }, [item.quantity]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setInputValue(val);
+    
+    if (val === '') {
+      setError('Minimal pemesanan 30 pcs');
+      return;
+    }
+    
+    const num = parseInt(val, 10);
+    if (isNaN(num) || num < 30) {
+      setError('Minimal pemesanan 30 pcs');
+      // Do not update global store if invalid
+    } else {
+      setError('');
+      updateQuantity(userId, item.product_id, num);
+    }
+  };
+
+  const handleBlur = () => {
+    const num = parseInt(inputValue, 10);
+    if (isNaN(num) || num < 30) {
+      setInputValue('30');
+      setError('');
+      updateQuantity(userId, item.product_id, 30);
+    }
+  };
+
+  const handleDecrement = () => {
+    const current = parseInt(inputValue, 10) || item.quantity;
+    if (current > 30) {
+      const next = current - 1;
+      setInputValue(next.toString());
+      setError('');
+      updateQuantity(userId, item.product_id, next);
+    }
+  };
+
+  const handleIncrement = () => {
+    const current = parseInt(inputValue, 10) || item.quantity;
+    const next = current + 1;
+    setInputValue(next.toString());
+    setError('');
+    updateQuantity(userId, item.product_id, next);
+  };
+
+  return (
+    <div className="flex flex-col gap-2 p-4 bg-white rounded-[16px] shadow-sm border border-gray-100">
+      <div className="flex gap-4">
+        <div className="w-20 h-20 shrink-0 bg-gray-100 rounded-[10px] overflow-hidden relative">
+          {item.image_url ? (
+            <Image src={item.image_url} alt={item.name} fill className="object-cover" unoptimized />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-2xl">🥟</div>
+          )}
+        </div>
+        
+        <div className="flex flex-col flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2 mb-1">
+            <h3 className="font-semibold text-gray-900 line-clamp-2">{item.name}</h3>
+            <button 
+              onClick={() => removeItem(userId, item.product_id)}
+              className="p-1 text-gray-400 hover:text-red-500 rounded"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
+          <div className="text-[#C96A3D] font-medium text-sm mb-3">
+            Rp {item.price.toLocaleString('id-ID')} / pcs
+          </div>
+          
+          <div className="flex items-center justify-between mt-auto">
+            <div className="flex items-center border border-gray-200 rounded-[8px] bg-gray-50 focus-within:ring-1 focus-within:ring-[#C96A3D] focus-within:border-[#C96A3D] overflow-hidden">
+              <button 
+                onClick={handleDecrement}
+                disabled={item.quantity <= 30 || parseInt(inputValue, 10) <= 30}
+                className="w-8 h-8 flex items-center justify-center text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-200 transition"
+              >
+                <Minus className="w-3.5 h-3.5" />
+              </button>
+              <input
+                type="number"
+                value={inputValue}
+                onChange={handleInputChange}
+                onBlur={handleBlur}
+                className="w-12 h-8 text-center font-semibold text-sm text-gray-900 bg-transparent border-none focus:outline-none appearance-none"
+                style={{ WebkitAppearance: 'none', margin: 0 }}
+                min="30"
+              />
+              <button 
+                onClick={handleIncrement}
+                className="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-gray-200 transition"
+              >
+                <Plus className="w-3.5 h-3.5" />
+              </button>
+            </div>
+            <div className="font-bold text-gray-900 text-sm">
+              Rp {(item.price * item.quantity).toLocaleString('id-ID')}
+            </div>
+          </div>
+        </div>
+      </div>
+      {error && (
+        <div className="text-xs text-red-500 font-medium text-right mt-1">
+          {error}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function CartView({ userId }: { userId: string }) {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
@@ -56,54 +180,13 @@ export function CartView({ userId }: { userId: string }) {
 
       <div className="flex flex-col space-y-4">
         {cartItems.map((item) => (
-          <div key={item.product_id} className="flex gap-4 p-4 bg-white rounded-[16px] shadow-sm border border-gray-100">
-            <div className="w-20 h-20 shrink-0 bg-gray-100 rounded-[10px] overflow-hidden relative">
-              {item.image_url ? (
-                <Image src={item.image_url} alt={item.name} fill className="object-cover" unoptimized />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-2xl">🥟</div>
-              )}
-            </div>
-            
-            <div className="flex flex-col flex-1 min-w-0">
-              <div className="flex items-start justify-between gap-2 mb-1">
-                <h3 className="font-semibold text-gray-900 line-clamp-2">{item.name}</h3>
-                <button 
-                  onClick={() => removeItem(userId, item.product_id)}
-                  className="p-1 text-gray-400 hover:text-red-500 rounded"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-              <div className="text-[#C96A3D] font-medium text-sm mb-3">
-                Rp {item.price.toLocaleString('id-ID')} / pcs
-              </div>
-              
-              <div className="flex items-center justify-between mt-auto">
-                <div className="flex items-center border border-gray-200 rounded-[8px] bg-gray-50">
-                  <button 
-                    onClick={() => updateQuantity(userId, item.product_id, item.quantity - 1)}
-                    disabled={item.quantity <= 30}
-                    className="w-8 h-8 flex items-center justify-center text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-200 rounded-l-[8px] transition"
-                  >
-                    <Minus className="w-3.5 h-3.5" />
-                  </button>
-                  <div className="w-10 text-center font-semibold text-sm text-gray-900">
-                    {item.quantity}
-                  </div>
-                  <button 
-                    onClick={() => updateQuantity(userId, item.product_id, item.quantity + 1)}
-                    className="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-gray-200 rounded-r-[8px] transition"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-                <div className="font-bold text-gray-900 text-sm">
-                  Rp {(item.price * item.quantity).toLocaleString('id-ID')}
-                </div>
-              </div>
-            </div>
-          </div>
+          <CartItemCard 
+            key={item.product_id}
+            item={item} 
+            userId={userId} 
+            updateQuantity={updateQuantity} 
+            removeItem={removeItem} 
+          />
         ))}
       </div>
 
