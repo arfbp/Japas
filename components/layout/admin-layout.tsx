@@ -49,6 +49,7 @@ export async function AdminLayout({ children }: { children: ReactNode }) {
           <nav className="hidden md:flex gap-4">
             <Link href="/admin/orders" className="text-sm text-gray-300 hover:text-white transition-colors">Kelola Pesanan</Link>
             <Link href="/admin/products" className="text-sm text-gray-300 hover:text-white transition-colors">Kelola Produk</Link>
+            <Link href="/admin/settings" className="text-sm text-gray-300 hover:text-white transition-colors">Pengaturan Toko</Link>
             <Link href="/" className="text-sm text-gray-300 hover:text-white transition-colors">Lihat Toko</Link>
           </nav>
         </div>
@@ -59,6 +60,7 @@ export async function AdminLayout({ children }: { children: ReactNode }) {
       <div className="w-full bg-gray-800 px-4 md:px-8 py-2 md:hidden flex gap-4 overflow-x-auto">
          <Link href="/admin/orders" className="text-sm text-gray-300 whitespace-nowrap pt-1 pb-1">Kelola Pesanan</Link>
          <Link href="/admin/products" className="text-sm text-gray-300 whitespace-nowrap pt-1 pb-1">Kelola Produk</Link>
+         <Link href="/admin/settings" className="text-sm text-gray-300 whitespace-nowrap pt-1 pb-1">Pengaturan Toko</Link>
          <Link href="/" className="text-sm text-gray-300 whitespace-nowrap pt-1 pb-1">Lihat Toko</Link>
       </div>
       <main className="flex-1 w-full max-w-7xl px-4 md:px-8 py-6">
