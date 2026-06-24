@@ -19,6 +19,7 @@ interface OrderTrackingViewProps {
 const STATUS_STEPS = [
   { id: 'pending_payment', label: 'Menunggu Pembayaran', icon: Clock },
   { id: 'pending_verification', label: 'Verifikasi Pembayaran', icon: CheckSquare },
+  { id: 'payment_accepted', label: 'Pembayaran Diterima', icon: CheckSquare },
   { id: 'processing', label: 'Diproses', icon: Package },
   { id: 'ready_for_pickup', label: 'Siap Diambil', icon: ShoppingBag },
   { id: 'completed', label: 'Selesai', icon: CheckCircle2 },
@@ -48,15 +49,11 @@ export function OrderTrackingView({ order: initialOrder, items, history: initial
   
   const currentStatusIndex = STATUS_STEPS.findIndex(s => s.id === order.status);
   
-  // if payment_accepted, we can treat it as between verification and processing, or just highlight verification
   const getStepStatus = (stepId: string, index: number) => {
     if (order.status === 'cancelled') {
        if (index === 0) return 'completed';
        return 'cancelled';
     }
-    
-    if (order.status === 'payment_accepted' && stepId === 'pending_verification') return 'completed';
-    if (order.status === 'payment_accepted' && stepId === 'processing') return 'current';
     
     if (index < currentStatusIndex || order.status === 'completed') return 'completed';
     if (index === currentStatusIndex) return 'current';
@@ -187,13 +184,15 @@ export function OrderTrackingView({ order: initialOrder, items, history: initial
         </div>
       </div>
 
-      <button 
-        onClick={handleWhatsApp}
-        className="w-full bg-[#25D366] text-white py-3.5 rounded-[12px] font-bold text-center hover:bg-[#20bd5a] transition flex items-center justify-center gap-2"
-      >
-        <MessageCircle className="w-5 h-5" />
-        {isReadyForPickup ? "Konfirmasi Pengambilan via WhatsApp" : "Hubungi Admin via WhatsApp"}
-      </button>
+      {isReadyForPickup && (
+        <button 
+          onClick={handleWhatsApp}
+          className="w-full bg-[#25D366] text-white py-3.5 rounded-[12px] font-bold text-center hover:bg-[#20bd5a] transition flex items-center justify-center gap-2"
+        >
+          <MessageCircle className="w-5 h-5" />
+          Hubungi Admin via WhatsApp
+        </button>
+      )}
     </div>
   );
 }

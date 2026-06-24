@@ -21,7 +21,7 @@ export default async function PaymentPage({
   // Verify order
   const { data: order } = await supabase
     .from('orders')
-    .select('*')
+    .select('*, order_items(*)')
     .eq('id', order_id)
     .single();
 

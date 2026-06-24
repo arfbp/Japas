@@ -27,6 +27,16 @@ export async function createOrder(data: {
     throw new Error('Unauthorized');
   }
 
+  // Validations
+  if (!data.items || data.items.length === 0) {
+    throw new Error('Cart is empty');
+  }
+
+  const isValidQty = data.items.every(item => item.quantity >= 30);
+  if (!isValidQty) {
+    throw new Error('Minimum pemesanan 30 quantity per kue');
+  }
+
   // 1. Generate Order Number
   // Format: JP-YYYYMMDD-XXXX
   const today = new Date();

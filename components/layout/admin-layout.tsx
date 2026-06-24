@@ -35,7 +35,7 @@ export async function AdminLayout({ children }: { children: ReactNode }) {
   const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
   
   if (profile?.role !== 'admin') {
-    redirect('/');
+    redirect('/katalog');
   }
 
   return (

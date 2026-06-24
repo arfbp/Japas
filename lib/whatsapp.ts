@@ -20,24 +20,18 @@ Total: Rp ${order.total_amount?.toLocaleString('id-ID')}
 Status: Menunggu Pembayaran`;
     }
     if (status === 'pending_verification') {
-      return `Halo Admin, saya telah melakukan pembayaran:
-
+      return `Halo Admin, saya telah melakukan pembayaran.
 Order: ${order.order_number}
 Nama: ${order.customer_name}
 No HP: ${order.customer_phone}
-Pickup Date: ${new Date(order.pickup_date).toLocaleDateString('id-ID')}
+Tanggal Pickup: ${new Date(order.pickup_date).toLocaleDateString('id-ID')}
 Total: Rp ${order.total_amount?.toLocaleString('id-ID')}
-Status: Menunggu verifikasi pembayaran
-
-Terima kasih.`;
+Status: Menunggu verifikasi pembayaran`;
     }
     if (status === 'ready_for_pickup') {
-      return `Halo Admin, saya ingin konfirmasi pengambilan pesanan:
-
+      return `Halo Admin, pesanan saya sudah siap diambil.
 Order: ${order.order_number}
-Nama: ${order.customer_name}
-
-Saya akan segera mengambil pesanan ini. Terima kasih.`;
+Nama: ${order.customer_name}`;
     }
     return `Halo Admin, saya ingin menanyakan pesanan saya:\n\nOrder Number: ${order.order_number}\nNama: ${order.customer_name}\nStatus: ${status}`;
   }

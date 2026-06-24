@@ -9,12 +9,14 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { createClient } from '@/lib/supabase/client';
 import { resizeImage } from '@/lib/image-utils';
 import Image from 'next/image';
 
 const productSchema = z.object({
   name: z.string().min(1, 'Nama wajib diisi'),
+  description: z.string().optional(),
   price: z.coerce.number().min(1, 'Harga wajib diisi'),
   status: z.enum(['available', 'sold_out_today', 'inactive']),
   sort_order: z.coerce.number().default(0),
@@ -34,6 +36,7 @@ export default function ProductForm({ product }: { product?: any }) {
     resolver: zodResolver(productSchema) as any,
     defaultValues: {
       name: product?.name || '',
+      description: product?.description || '',
       price: product?.price || 0,
       status: product?.status || 'available',
       sort_order: product?.sort_order || 0,
@@ -45,6 +48,10 @@ export default function ProductForm({ product }: { product?: any }) {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Ukuran file maksimal 5MB');
+        return;
+      }
       setImageFile(file);
       setImagePreview(URL.createObjectURL(file));
     }
@@ -59,6 +66,7 @@ export default function ProductForm({ product }: { product?: any }) {
       if (imageFile) {
         const optimizedImage = await resizeImage(imageFile);
         const fileExt = 'webp';
+        // Using crypto.randomUUID() for the image file name
         const fileName = `${crypto.randomUUID()}.${fileExt}`;
         const filePath = `${fileName}`;
 
@@ -82,6 +90,7 @@ export default function ProductForm({ product }: { product?: any }) {
 
       const productData = {
         name: data.name,
+        description: data.description,
         price: data.price,
         status: data.status,
         sort_order: data.sort_order,
@@ -113,6 +122,20 @@ export default function ProductForm({ product }: { product?: any }) {
     setIsLoading(true);
     try {
       const supabase = createClient();
+
+      if (product?.image_url) {
+        try {
+          const urlObj = new URL(product.image_url);
+          const pathSegments = urlObj.pathname.split('/');
+          const fileName = pathSegments[pathSegments.length - 1];
+          if (fileName) {
+            await supabase.storage.from('products').remove([fileName]);
+          }
+        } catch (e) {
+          console.error("Error parsing image URL for deletion:", e);
+        }
+      }
+
       const { error } = await supabase.from('products').delete().eq('id', product.id);
       if (error) throw error;
       toast.success('Produk berhasil dihapus');
@@ -137,28 +160,34 @@ export default function ProductForm({ product }: { product?: any }) {
             )}
           </div>
           <div className="space-y-2 h-full">
-            <Input type="file" accept="image/*" onChange={handleImageChange} className="w-full max-w-xs" />
-            <p className="text-[11px] text-gray-500">Maks. ukuran direkomendasikan. Mendukung JPG, PNG, WEBP.</p>
+            <Input type="file" accept="image/jpeg, image/png, image/webp" onChange={handleImageChange} className="w-full max-w-xs" />
+            <p className="text-[11px] text-gray-500">Maksimal ukuran 5MB. Mendukung JPG, PNG, WEBP.</p>
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="name">Nama Kue</Label>
+          <Label htmlFor="name">Nama Kue <span className="text-red-500">*</span></Label>
           <Input id="name" {...register('name')} disabled={isLoading} />
           {errors.name && <p className="text-xs text-red-500">{errors.name.message as string}</p>}
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="price">Harga (Rp)</Label>
+          <Label htmlFor="price">Harga (Rp) <span className="text-red-500">*</span></Label>
           <Input id="price" type="number" {...register('price')} disabled={isLoading} />
           {errors.price && <p className="text-xs text-red-500">{errors.price.message as string}</p>}
         </div>
       </div>
 
+      <div className="space-y-2">
+        <Label htmlFor="description">Deskripsi</Label>
+        <Textarea id="description" {...register('description')} disabled={isLoading} className="min-h-[100px]" placeholder="Deskripsi kue..." />
+        {errors.description && <p className="text-xs text-red-500">{errors.description.message as string}</p>}
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 bg-gray-50 p-3 rounded-lg border border-gray-100">
           <input
             type="checkbox"
             id="featured"
@@ -168,7 +197,7 @@ export default function ProductForm({ product }: { product?: any }) {
           />
           <Label htmlFor="featured" className="font-medium cursor-pointer">Produk Unggulan (Featured)</Label>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 bg-gray-50 p-3 rounded-lg border border-gray-100">
           <input
             type="checkbox"
             id="is_active"
@@ -176,7 +205,7 @@ export default function ProductForm({ product }: { product?: any }) {
             {...register('is_active')}
             disabled={isLoading}
           />
-          <Label htmlFor="is_active" className="font-medium cursor-pointer">Produk Aktif</Label>
+          <Label htmlFor="is_active" className="font-medium cursor-pointer">Tampilkan di Katalog</Label>
         </div>
       </div>
 
@@ -213,7 +242,7 @@ export default function ProductForm({ product }: { product?: any }) {
           <Button type="button" variant="outline" onClick={() => router.push('/admin/products')} disabled={isLoading}>
             Batal
           </Button>
-          <Button type="submit" disabled={isLoading}>
+          <Button type="submit" disabled={isLoading} className="bg-[#C96A3D] hover:bg-[#b05a30] text-white">
             {isLoading ? 'Menyimpan...' : 'Simpan Produk'}
           </Button>
         </div>

@@ -32,8 +32,8 @@ export function PaymentView({ order, storeSettings, user, existingProof }: Payme
       return toast.error('Format gambar tidak didukung. Gunakan JPG, PNG, atau WEBP');
     }
 
-    if (file.size > 10 * 1024 * 1024) {
-      return toast.error('Ukuran file terlalu besar (Maksimal 10MB)');
+    if (file.size > 5 * 1024 * 1024) {
+      return toast.error('Ukuran file terlalu besar (Maksimal 5MB)');
     }
 
     try {
@@ -158,6 +158,21 @@ export function PaymentView({ order, storeSettings, user, existingProof }: Payme
       </div>
 
       <div className="bg-white p-5 rounded-[16px] shadow-sm border border-gray-100 flex flex-col space-y-4">
+        <h2 className="font-semibold text-gray-900">Ringkasan Pesanan</h2>
+        <div className="space-y-3">
+          {order.order_items?.map((item: any) => (
+            <div key={item.id} className="flex justify-between items-center text-sm">
+              <div className="flex flex-col">
+                <span className="font-medium text-gray-900">{item.product_name}</span>
+                <span className="text-gray-500">{item.quantity} x Rp {item.price_at_time.toLocaleString('id-ID')}</span>
+              </div>
+              <span className="font-semibold text-gray-900">Rp {(item.quantity * item.price_at_time).toLocaleString('id-ID')}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="bg-white p-5 rounded-[16px] shadow-sm border border-gray-100 flex flex-col space-y-4">
         <h2 className="font-semibold text-gray-900">Upload Bukti Pembayaran</h2>
         
         {proofUploaded ? (
@@ -206,16 +221,8 @@ export function PaymentView({ order, storeSettings, user, existingProof }: Payme
         ) : (
           <div className="flex flex-col items-center space-y-4">
              <p className="text-sm text-gray-500 text-center">
-               Silakan transfer sesuai nominal melalui QRIS di atas, lalu foto/screenshot bukti pembayaran Anda.
+               Transfer sesuai nominal, lalu upload bukti pembayaran
              </p>
-             
-             <button 
-               onClick={() => handleWhatsApp('pending_payment')}
-               className="w-full bg-[#25D366] text-white py-3 rounded-[12px] font-bold text-center hover:bg-[#20bd5a] transition flex items-center justify-center gap-2 mb-2"
-             >
-               <MessageCircle className="w-5 h-5" />
-               Konfirmasi Order via WhatsApp
-             </button>
 
              <div className="relative w-full">
                <input 

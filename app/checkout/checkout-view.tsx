@@ -123,9 +123,9 @@ export function CheckoutView({ userId, profile, storeSettings }: CheckoutViewPro
             <Label>Nama Lengkap</Label>
             <Input 
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              readOnly
               placeholder="Masukkan nama"
-              className="bg-gray-50 border-gray-200"
+              className="bg-gray-100 border-gray-200 text-gray-500"
               required
             />
           </div>
@@ -133,14 +133,9 @@ export function CheckoutView({ userId, profile, storeSettings }: CheckoutViewPro
             <Label>Nomor WhatsApp</Label>
             <Input 
               value={phone}
-              onChange={(e) => {
-                let val = e.target.value;
-                if (val.startsWith('0')) val = '+62' + val.substring(1);
-                else if (!val.startsWith('+62') && val.length > 0) val = '+62' + val;
-                setPhone(val);
-              }}
+              readOnly
               placeholder="+628..."
-              className="bg-gray-50 border-gray-200"
+              className="bg-gray-100 border-gray-200 text-gray-500"
               required
             />
           </div>

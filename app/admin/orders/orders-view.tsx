@@ -8,6 +8,7 @@ import { updateOrderStatus } from './actions';
 import { toast } from 'sonner';
 import { generateWhatsAppMessage, getWhatsAppURL } from '@/lib/whatsapp';
 import Image from 'next/image';
+import Link from 'next/link';
 
 interface AdminOrdersViewProps {
   adminId: string;
@@ -131,30 +132,40 @@ export function AdminOrdersView({ adminId, storeSettings }: AdminOrdersViewProps
         </button>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="relative flex-1">
+      <div className="flex flex-col gap-4">
+        <div className="relative w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <Input 
             placeholder="Cari order #, nama, nomor WA..." 
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 bg-white border-gray-200 rounded-[12px]"
+            className="pl-9 bg-white border-gray-200 rounded-[12px] w-full"
           />
         </div>
-        <select
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          className="bg-white border text-sm border-gray-200 rounded-[12px] px-3 py-2 w-full md:w-auto"
-        >
-          <option value="all">Semua Status</option>
-          <option value="pending_payment">Menunggu Pembayaran</option>
-          <option value="pending_verification">Verifikasi Pembayaran</option>
-          <option value="payment_accepted">Pembayaran Diterima</option>
-          <option value="processing">Diproses</option>
-          <option value="ready_for_pickup">Siap Diambil</option>
-          <option value="completed">Selesai</option>
-          <option value="cancelled">Dibatalkan</option>
-        </select>
+        <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 hide-scrollbar">
+          {[
+            { id: 'all', label: 'Semua' },
+            { id: 'pending_payment', label: 'Menunggu Pembayaran' },
+            { id: 'pending_verification', label: 'Verifikasi Pembayaran' },
+            { id: 'payment_accepted', label: 'Pembayaran Diterima' },
+            { id: 'processing', label: 'Diproses' },
+            { id: 'ready_for_pickup', label: 'Siap Diambil' },
+            { id: 'completed', label: 'Selesai' },
+            { id: 'cancelled', label: 'Dibatalkan' }
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setFilter(tab.id)}
+              className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-semibold transition ${
+                filter === tab.id 
+                  ? 'bg-[#C96A3D] text-white' 
+                  : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="bg-white rounded-[16px] shadow-sm border border-gray-100 overflow-x-auto">
@@ -183,7 +194,7 @@ export function AdminOrdersView({ adminId, storeSettings }: AdminOrdersViewProps
                 <tr key={order.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition">
                   <td className="px-4 py-4">
                     <div className="font-semibold text-gray-900">{order.order_number}</div>
-                    <div className="text-xs text-gray-500">{new Date(order.created_at).toLocaleDateString('id-ID')}</div>
+                    <div className="text-xs text-gray-500">Pickup: {new Date(order.pickup_date).toLocaleDateString('id-ID')}</div>
                   </td>
                   <td className="px-4 py-4">
                     <div className="font-medium text-gray-900">{order.customer_name}</div>
@@ -233,14 +244,13 @@ export function AdminOrdersView({ adminId, storeSettings }: AdminOrdersViewProps
                     >
                       <MessageCircle className="w-4 h-4" />
                     </button>
-                    <a 
-                      href={`/orders/${order.id}`}
-                      target="_blank"
-                      className="p-1.5 text-gray-500 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-[6px] transition flex-shrink-0"
-                      title="Lihat Detail Pesanan"
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                    </a>
+                      <Link 
+                        href={`/admin/orders/${order.id}`}
+                        className="p-1.5 text-gray-500 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-[6px] transition flex-shrink-0"
+                        title="Lihat Detail Pesanan"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                      </Link>
                   </td>
                 </tr>
               ))
