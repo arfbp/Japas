@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
-import { updateStoreSettings, saveAnnouncement, deleteAnnouncement } from './actions';
+import { createClient as createClientComponentClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 import { Loader2, Plus, Edit2, Trash2, X, Store, Image as ImageIcon } from 'lucide-react';
 import Image from 'next/image';
@@ -34,7 +33,7 @@ export function SettingsView({ initialSettings, initialAnnouncements }: { initia
   const [aEnd, setAEnd] = useState('');
   const [isSavingAnnouncement, setIsSavingAnnouncement] = useState(false);
 
-  const supabase = createClient();
+  const supabase = createClientComponentClient();
 
   const handleQrisUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -71,15 +70,23 @@ export function SettingsView({ initialSettings, initialAnnouncements }: { initia
 
     setIsSavingStore(true);
     try {
-      await updateStoreSettings({
+      const settingsData = {
         store_name: storeName,
         pickup_address: pickupAddress,
         whatsapp_admin: whatsappAdmin,
         qris_image_url: qrisUrl,
         is_store_open: isStoreOpen,
         cutoff_time: cutoffTime.length === 5 ? `${cutoffTime}:00` : cutoffTime, // ensure HH:mm:ss format
-        minimum_lead_days: parseInt(leadDays.toString(), 10)
-      });
+        minimum_lead_days: parseInt(leadDays.toString(), 10),
+        singleton_key: 'singleton'
+      };
+
+      const { error } = await supabase
+        .from('store_settings')
+        .upsert(settingsData, { onConflict: 'singleton_key' });
+
+      if (error) throw error;
+
       toast.success('Pengaturan toko berhasil disimpan');
       router.refresh();
     } catch (error: any) {
@@ -126,9 +133,18 @@ export function SettingsView({ initialSettings, initialAnnouncements }: { initia
 
       if (editingAnnouncement?.id) {
         payload.id = editingAnnouncement.id;
+        const { error } = await supabase
+          .from('announcements')
+          .update(payload)
+          .eq('id', payload.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('announcements')
+          .insert([payload]);
+        if (error) throw error;
       }
 
-      await saveAnnouncement(payload);
       toast.success('Pengumuman berhasil disimpan');
       setIsAnnouncementModalOpen(false);
       router.refresh();
@@ -140,7 +156,8 @@ export function SettingsView({ initialSettings, initialAnnouncements }: { initia
         // Will be replaced by router.refresh() anyway
       }
     } catch (error: any) {
-      toast.error('Gagal menyimpan pengumuman: ' + error.message);
+      console.error('Full announcement save error:', error);
+      toast.error(error.message || 'Terjadi kesalahan tidak dikenal saat menyimpan');
     } finally {
       setIsSavingAnnouncement(false);
     }
@@ -150,12 +167,19 @@ export function SettingsView({ initialSettings, initialAnnouncements }: { initia
     if (!confirm('Yakin ingin menghapus pengumuman ini?')) return;
     
     try {
-      await deleteAnnouncement(id);
+      const { error } = await supabase
+        .from('announcements')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
       toast.success('Pengumuman berhasil dihapus');
       setAnnouncements(announcements.filter((a: any) => a.id !== id));
       router.refresh();
     } catch (error: any) {
-      toast.error('Gagal menghapus pengumuman: ' + error.message);
+      console.error('Full announcement delete error:', error);
+      toast.error(error.message || 'Terjadi kesalahan tidak dikenal saat menghapus');
     }
   };
 
