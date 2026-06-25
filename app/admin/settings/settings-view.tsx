@@ -78,7 +78,7 @@ export function SettingsView({ initialSettings, initialAnnouncements }: { initia
         is_store_open: isStoreOpen,
         cutoff_time: cutoffTime.length === 5 ? `${cutoffTime}:00` : cutoffTime, // ensure HH:mm:ss format
         minimum_lead_days: parseInt(leadDays.toString(), 10),
-        singleton_key: 'singleton'
+        singleton_key: true
       };
 
       const { error } = await supabase
