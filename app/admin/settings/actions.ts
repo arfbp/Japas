@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
+import { createClient as createAdminClient } from '@supabase/supabase-js';
 
 export async function updateStoreSettings(data: any) {
   const supabase = await createClient();
@@ -52,15 +53,20 @@ export async function saveAnnouncement(data: any) {
 
   if (profile?.role !== 'admin') throw new Error('Not authorized');
 
+  const supabaseAdmin = createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
   if (data.id) {
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from('announcements')
       .update(data)
       .eq('id', data.id);
       
     if (error) throw new Error(error.message);
   } else {
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from('announcements')
       .insert([data]);
       
