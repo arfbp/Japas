@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { createClient } from '@/lib/supabase/client';
+import { createClient as createClientComponentClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 import { Loader2, UploadCloud, CheckCircle2, MessageCircle } from 'lucide-react';
 import imageCompression from 'browser-image-compression';
@@ -20,7 +20,7 @@ interface PaymentViewProps {
 
 export function PaymentView({ order, storeSettings, user, existingProof }: PaymentViewProps) {
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = createClientComponentClient();
   const [uploading, setUploading] = useState(false);
   const [proofUploaded, setProofUploaded] = useState(!!existingProof);
   const [status, setStatus] = useState(existingProof?.verification_status || 'pending');
@@ -137,7 +137,7 @@ export function PaymentView({ order, storeSettings, user, existingProof }: Payme
       <div className="bg-white p-5 rounded-[16px] shadow-sm border border-gray-100 flex flex-col items-center justify-center space-y-4">
         <h2 className="font-semibold text-gray-900">Total Tagihan</h2>
         <div className="text-3xl font-bold text-[#C96A3D]">
-          Rp {order.total_amount.toLocaleString('id-ID')}
+          Rp {(order?.total_amount ?? 0).toLocaleString('id-ID')}
         </div>
         
         {storeSettings?.qris_image_url ? (
@@ -162,15 +162,18 @@ export function PaymentView({ order, storeSettings, user, existingProof }: Payme
       <div className="bg-white p-5 rounded-[16px] shadow-sm border border-gray-100 flex flex-col space-y-4">
         <h2 className="font-semibold text-gray-900">Ringkasan Pesanan</h2>
         <div className="space-y-3">
-          {order.order_items?.map((item: any) => (
-            <div key={item.id} className="flex justify-between items-center text-sm">
-              <div className="flex flex-col">
-                <span className="font-medium text-gray-900">{item.product_name}</span>
-                <span className="text-gray-500">{item.quantity} x Rp {item.price_at_time.toLocaleString('id-ID')}</span>
+          {order.order_items?.map((item: any) => {
+            const itemPrice = item.product_price ?? item.price_at_time ?? 0;
+            return (
+              <div key={item.id} className="flex justify-between items-center text-sm">
+                <div className="flex flex-col">
+                  <span className="font-medium text-gray-900">{item.product_name}</span>
+                  <span className="text-gray-500">{item.quantity} x Rp {(itemPrice).toLocaleString('id-ID')}</span>
+                </div>
+                <span className="font-semibold text-gray-900">Rp {(item.quantity * itemPrice).toLocaleString('id-ID')}</span>
               </div>
-              <span className="font-semibold text-gray-900">Rp {(item.quantity * item.price_at_time).toLocaleString('id-ID')}</span>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
