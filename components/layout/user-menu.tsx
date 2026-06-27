@@ -4,6 +4,8 @@ import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { useCartStore } from '@/lib/store/cart';
+import { ShoppingCart } from 'lucide-react';
 
 interface UserMenuProps {
   profile: any;
@@ -12,6 +14,8 @@ interface UserMenuProps {
 
 export function UserMenu({ profile, email }: UserMenuProps) {
   const router = useRouter();
+  const cartItems = useCartStore((state) => (profile?.id ? state.itemsByUserId[profile.id] : undefined) || []);
+  const totalCartItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   const handleSignOut = async () => {
     const supabase = createClient();
@@ -34,6 +38,16 @@ export function UserMenu({ profile, email }: UserMenuProps) {
           Admin Panel
         </Link>
       )}
+      
+      <Link href="/keranjang" className="relative p-2 text-gray-600 hover:text-[#C96A3D] transition-colors" aria-label="Keranjang dan Pesanan">
+        <ShoppingCart className="w-5 h-5" />
+        {totalCartItems > 0 && (
+          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-white animate-pulse">
+            {totalCartItems}
+          </span>
+        )}
+      </Link>
+
       <Link href="/profile" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
         <div className="w-8 h-8 rounded-full bg-[#C96A3D] text-white flex items-center justify-center text-xs font-medium">
           {getInitials(profile?.full_name)}

@@ -176,6 +176,13 @@ export function CatalogView({ initialProducts, userId }: { initialProducts: Prod
   
   const addItem = useCartStore((state) => state.addItem);
   const cartItems = useCartStore((state) => (userId ? state.itemsByUserId[userId] : undefined) || EMPTY_ARRAY);
+  const fetchCart = useCartStore((state) => state.fetchCart);
+
+  useEffect(() => {
+    if (userId) {
+      fetchCart(userId);
+    }
+  }, [userId, fetchCart]);
 
   const filteredProducts = initialProducts.filter(product => {
      const matchesSearch = product.name.toLowerCase().includes(search.toLowerCase());
@@ -302,7 +309,7 @@ export function CatalogView({ initialProducts, userId }: { initialProducts: Prod
         <div className="fixed bottom-20 left-0 right-0 p-4 md:left-64 md:bottom-6 pointer-events-none z-40">
           <div className="max-w-md mx-auto relative">
              <button 
-               onClick={() => router.push('/cart')}
+               onClick={() => router.push('/keranjang')}
                className="pointer-events-auto w-full bg-[#C96A3D] text-white p-4 rounded-[16px] shadow-xl flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#C96A3D] transition-transform active:scale-95"
              >
                <div className="flex items-center gap-3">

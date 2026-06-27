@@ -139,13 +139,17 @@ export function CartView({ userId }: { userId: string }) {
   const updateQuantity = useCartStore((state) => state.updateQuantity);
   const removeItem = useCartStore((state) => state.removeItem);
   const getCartTotal = useCartStore((state) => state.getCartTotal);
+  const fetchCart = useCartStore((state) => state.fetchCart);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
+    if (userId) {
+      fetchCart(userId);
+    }
     // Prefetch checkout
     router.prefetch('/checkout');
-  }, [router]);
+  }, [router, userId, fetchCart]);
 
   if (!mounted) return null; // Prevent hydration errors
 

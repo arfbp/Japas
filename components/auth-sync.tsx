@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
+import { useCartStore } from '@/lib/store/cart';
 
 export function AuthSync() {
   const router = useRouter();
@@ -17,6 +18,9 @@ export function AuthSync() {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session?.user) {
+        // Automatically load persistent cart from Supabase
+        useCartStore.getState().fetchCart(session.user.id);
+
         const { data, error } = await supabase.from('profiles').select('id').eq('id', session.user.id).single();
         
         if (!data || error) {
@@ -39,9 +43,12 @@ export function AuthSync() {
     syncProfile();
 
     const supabase = createClient();
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN') {
         syncProfile();
+        if (session?.user) {
+          useCartStore.getState().fetchCart(session.user.id);
+        }
       }
     });
 
@@ -53,3 +60,4 @@ export function AuthSync() {
 
   return null;
 }
+

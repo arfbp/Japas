@@ -56,15 +56,27 @@ export function CheckoutView({ userId, profile, storeSettings }: CheckoutViewPro
   
   const minDateStr = format(minDate, 'yyyy-MM-dd');
 
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMounted(true);
-    if (cartItems.length === 0 && !isSuccess) {
-      router.replace('/cart');
-    }
-  }, [cartItems, router, isSuccess]);
+  const fetchCart = useCartStore((state) => state.fetchCart);
+  const [cartLoaded, setCartLoaded] = useState(false);
 
-  if (!mounted || (cartItems.length === 0 && !isSuccess)) return null;
+  useEffect(() => {
+    const load = async () => {
+      setMounted(true);
+      if (userId) {
+        await fetchCart(userId);
+      }
+      setCartLoaded(true);
+    };
+    load();
+  }, [userId, fetchCart]);
+
+  useEffect(() => {
+    if (mounted && cartLoaded && cartItems.length === 0 && !isSuccess) {
+      router.replace('/keranjang');
+    }
+  }, [cartItems, router, isSuccess, mounted, cartLoaded]);
+
+  if (!mounted || !cartLoaded || (cartItems.length === 0 && !isSuccess)) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
