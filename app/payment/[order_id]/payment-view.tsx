@@ -24,6 +24,7 @@ export function PaymentView({ order, storeSettings, user, existingProof }: Payme
   const [uploading, setUploading] = useState(false);
   const [proofUploaded, setProofUploaded] = useState(!!existingProof);
   const [status, setStatus] = useState(existingProof?.verification_status || 'pending');
+  const [orderStatus, setOrderStatus] = useState(order.status);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -47,7 +48,14 @@ export function PaymentView({ order, storeSettings, user, existingProof }: Payme
         useWebWorker: true,
         fileType: 'image/webp'
       };
-      const compressedFile = await imageCompression(file, options);
+      
+      let compressedFile;
+      try {
+        compressedFile = await imageCompression(file, options);
+      } catch (err) {
+        console.error('Error compressing image:', err);
+        throw new Error('Gagal mengompresi gambar');
+      }
       
       const fileName = `${order.id}.webp`;
       const filePath = `${user.id}/${fileName}`;
@@ -58,51 +66,71 @@ export function PaymentView({ order, storeSettings, user, existingProof }: Payme
         .upload(filePath, compressedFile, {
            contentType: 'image/webp',
            upsert: true 
-        });
+         });
 
-      if (storageError) throw storageError;
+      if (storageError) {
+        throw new Error(`Gagal mengunggah file ke penyimpanan: ${storageError.message}`);
+      }
 
       const { data: publicUrlData } = supabase.storage
         .from('payment-proofs')
         .getPublicUrl(filePath);
 
-      // Insert record
+      if (!publicUrlData?.publicUrl) {
+        throw new Error('Gagal mendapatkan URL publik dari file bukti pembayaran');
+      }
+
+      // Step 1: Insert to payment_proofs table (using upsert in case of resubmission)
       const { error: dbError } = await supabase
         .from('payment_proofs')
-        .insert({
+        .upsert({
            order_id: order.id,
            image_url: publicUrlData.publicUrl,
            verification_status: 'pending'
+        }, {
+           onConflict: 'order_id'
         });
 
-      if (dbError && dbError.code !== '23505') { // Ignore unique violation if already exists
-         throw dbError;
+      if (dbError) {
+         throw new Error(`Gagal menyimpan bukti pembayaran ke database: ${dbError.message}`);
       }
       
-      // Update order status
-      await supabase
+      // Step 2: Update orders table
+      const { error: orderUpdateError } = await supabase
         .from('orders')
         .update({ status: 'pending_verification' })
         .eq('id', order.id);
 
-      await supabase
+      if (orderUpdateError) {
+        throw new Error(`Gagal memperbarui status pesanan: ${orderUpdateError.message}`);
+      }
+
+      // Step 3: Insert to order_status_history
+      const { error: historyError } = await supabase
         .from('order_status_history')
         .insert({
            order_id: order.id,
            old_status: 'pending_payment',
            new_status: 'pending_verification',
-           note: 'Bukti pembayaran diunggah'
+           changed_by: user.id
         });
 
+      if (historyError) {
+        throw new Error(`Gagal mencatat riwayat status pesanan: ${historyError.message}`);
+      }
+
+      // Step 4: Show WhatsApp button after all steps succeed (by updating states)
       setProofUploaded(true);
       setStatus('pending');
+      setOrderStatus('pending_verification');
+      
       toast.success('Bukti pembayaran berhasil diunggah');
       
       router.refresh();
 
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      toast.error('Gagal mengunggah bukti pembayaran');
+      toast.error(error.message || 'Gagal mengunggah bukti pembayaran');
     } finally {
       setUploading(false);
     }
@@ -180,19 +208,19 @@ export function PaymentView({ order, storeSettings, user, existingProof }: Payme
       <div className="bg-white p-5 rounded-[16px] shadow-sm border border-gray-100 flex flex-col space-y-4">
         <h2 className="font-semibold text-gray-900">Upload Bukti Pembayaran</h2>
         
-        {order.status !== 'pending_payment' ? (
+        {orderStatus !== 'pending_payment' ? (
           <div className="flex flex-col items-center justify-center space-y-4 py-6">
              <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center">
                <CheckCircle2 className="w-8 h-8" />
              </div>
              <div className="text-center px-4">
                <div className="font-bold text-gray-900 text-base">Bukti pembayaran sudah diunggah, menunggu verifikasi admin</div>
-               <div className="text-sm text-gray-500 mt-1">Status Pesanan: {order.status === 'pending_verification' ? 'Menunggu Verifikasi' : 'Diproses / Selesai'}</div>
+               <div className="text-sm text-gray-500 mt-1">Status Pesanan: {orderStatus === 'pending_verification' ? 'Menunggu Verifikasi' : 'Diproses / Selesai'}</div>
              </div>
              
              <button 
                onClick={() => handleWhatsApp('pending_verification')}
-               className="mt-4 w-full bg-[#25D366] text-white py-3 rounded-[12px] font-bold text-center hover:bg-[#20bd5a] transition flex items-center justify-center gap-2"
+               className="mt-4 w-full bg-[#25D366] text-white py-3 rounded-[12px] font-bold text-center hover:bg-[#20bd5a] transition flex items-center justify-center gap-2 cursor-pointer"
              >
                <MessageCircle className="w-5 h-5" />
                Hubungi Admin via WhatsApp
@@ -200,7 +228,7 @@ export function PaymentView({ order, storeSettings, user, existingProof }: Payme
              
              <button 
                onClick={() => router.push(`/orders/${order.id}`)}
-               className="w-full bg-white border border-gray-200 text-gray-700 py-3 rounded-[12px] font-bold text-center hover:bg-gray-50 transition"
+               className="w-full bg-white border border-gray-200 text-gray-700 py-3 rounded-[12px] font-bold text-center hover:bg-gray-50 transition cursor-pointer"
              >
                Lacak Status Pesanan
              </button>
@@ -235,7 +263,7 @@ export function PaymentView({ order, storeSettings, user, existingProof }: Payme
 
              <button 
                onClick={() => handleWhatsApp('pending_verification')}
-               className="mt-4 w-full bg-[#25D366] text-white py-3 rounded-[12px] font-bold text-center hover:bg-[#20bd5a] transition flex items-center justify-center gap-2"
+               className="mt-4 w-full bg-[#25D366] text-white py-3 rounded-[12px] font-bold text-center hover:bg-[#20bd5a] transition flex items-center justify-center gap-2 cursor-pointer"
              >
                <MessageCircle className="w-5 h-5" />
                Hubungi Admin via WhatsApp
@@ -243,7 +271,7 @@ export function PaymentView({ order, storeSettings, user, existingProof }: Payme
              
              <button 
                onClick={() => router.push(`/orders/${order.id}`)}
-               className="w-full bg-white border border-gray-200 text-gray-700 py-3 rounded-[12px] font-bold text-center hover:bg-gray-50 transition"
+               className="w-full bg-white border border-gray-200 text-gray-700 py-3 rounded-[12px] font-bold text-center hover:bg-gray-50 transition cursor-pointer"
              >
                Lacak Status Pesanan
              </button>
