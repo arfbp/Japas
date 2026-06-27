@@ -180,7 +180,32 @@ export function PaymentView({ order, storeSettings, user, existingProof }: Payme
       <div className="bg-white p-5 rounded-[16px] shadow-sm border border-gray-100 flex flex-col space-y-4">
         <h2 className="font-semibold text-gray-900">Upload Bukti Pembayaran</h2>
         
-        {proofUploaded ? (
+        {order.status !== 'pending_payment' ? (
+          <div className="flex flex-col items-center justify-center space-y-4 py-6">
+             <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center">
+               <CheckCircle2 className="w-8 h-8" />
+             </div>
+             <div className="text-center px-4">
+               <div className="font-bold text-gray-900 text-base">Bukti pembayaran sudah diunggah, menunggu verifikasi admin</div>
+               <div className="text-sm text-gray-500 mt-1">Status Pesanan: {order.status === 'pending_verification' ? 'Menunggu Verifikasi' : 'Diproses / Selesai'}</div>
+             </div>
+             
+             <button 
+               onClick={() => handleWhatsApp('pending_verification')}
+               className="mt-4 w-full bg-[#25D366] text-white py-3 rounded-[12px] font-bold text-center hover:bg-[#20bd5a] transition flex items-center justify-center gap-2"
+             >
+               <MessageCircle className="w-5 h-5" />
+               Hubungi Admin via WhatsApp
+             </button>
+             
+             <button 
+               onClick={() => router.push(`/orders/${order.id}`)}
+               className="w-full bg-white border border-gray-200 text-gray-700 py-3 rounded-[12px] font-bold text-center hover:bg-gray-50 transition"
+             >
+               Lacak Status Pesanan
+             </button>
+          </div>
+        ) : proofUploaded ? (
           <div className="flex flex-col items-center justify-center space-y-4 py-6">
              <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center">
                <CheckCircle2 className="w-8 h-8" />
@@ -191,7 +216,7 @@ export function PaymentView({ order, storeSettings, user, existingProof }: Payme
              </div>
              
              {status === 'rejected' && (
-               <div className="text-sm text-red-500 bg-red-50 p-3 rounded-[8px] text-center">
+               <div className="text-sm text-red-500 bg-red-50 p-3 rounded-[8px] text-center w-full">
                  Pembayaran ditolak. Silakan upload ulang atau hubungi admin.
                  <div className="mt-4 relative">
                    <input
@@ -201,7 +226,7 @@ export function PaymentView({ order, storeSettings, user, existingProof }: Payme
                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                      disabled={uploading}
                    />
-                   <div className="px-4 py-2 bg-white border border-gray-200 rounded-[8px] text-gray-700 font-medium">
+                   <div className="px-4 py-2 bg-white border border-gray-200 rounded-[8px] text-gray-700 font-medium hover:bg-gray-50 transition cursor-pointer">
                      Upload Ulang
                    </div>
                  </div>

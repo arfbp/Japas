@@ -413,21 +413,29 @@ export function OrderTrackingView({ order: initialOrder, items, history: initial
       </div>
 
       {order.status === 'pending_payment' && (
-        <div className="bg-white p-5 rounded-[16px] shadow-sm border border-gray-100 flex flex-col sm:flex-row gap-3">
+        <div className="bg-white p-5 rounded-[16px] shadow-sm border border-gray-100 flex flex-col gap-4">
           <button
-            onClick={handleOpenEditModal}
-            className="flex-1 border border-[#C96A3D] text-[#C96A3D] py-3.5 rounded-[12px] font-bold text-center hover:bg-orange-50 transition flex items-center justify-center gap-2 text-sm"
+            onClick={() => router.push(`/payment/${order.id}`)}
+            className="w-full bg-[#C96A3D] text-white py-4 rounded-[12px] font-extrabold text-center hover:bg-orange-700 transition flex items-center justify-center gap-2 text-sm shadow-md cursor-pointer"
           >
-            <Edit2 className="w-4 h-4" />
-            Ubah Detail Pesanan
+            Lanjutkan Pembayaran
           </button>
-          <button
-            onClick={handleCancel}
-            disabled={cancelling}
-            className="flex-1 border border-red-200 text-red-600 py-3.5 rounded-[12px] font-bold text-center hover:bg-red-50 transition disabled:opacity-50 flex items-center justify-center gap-2 text-sm"
-          >
-            {cancelling ? 'Membatalkan...' : 'Batalkan Pesanan'}
-          </button>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <button
+              onClick={handleOpenEditModal}
+              className="flex-1 border border-[#C96A3D] text-[#C96A3D] py-3.5 rounded-[12px] font-bold text-center hover:bg-orange-50 transition flex items-center justify-center gap-2 text-sm"
+            >
+              <Edit2 className="w-4 h-4" />
+              Ubah Detail Pesanan
+            </button>
+            <button
+              onClick={handleCancel}
+              disabled={cancelling}
+              className="flex-1 border border-red-200 text-red-600 py-3.5 rounded-[12px] font-bold text-center hover:bg-red-50 transition disabled:opacity-50 flex items-center justify-center gap-2 text-sm"
+            >
+              {cancelling ? 'Membatalkan...' : 'Batalkan Pesanan'}
+            </button>
+          </div>
         </div>
       )}
 
