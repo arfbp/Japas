@@ -24,6 +24,8 @@ export function CheckoutView({ userId, profile, storeSettings }: CheckoutViewPro
   const [mounted, setMounted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [createdOrderId, setCreatedOrderId] = useState('');
   
   const cartItems = useCartStore((state) => (userId ? state.itemsByUserId[userId] : undefined) || EMPTY_ARRAY);
   const getCartTotal = useCartStore((state) => state.getCartTotal);
@@ -173,8 +175,9 @@ export function CheckoutView({ userId, profile, storeSettings }: CheckoutViewPro
       // 4. Check cart clear logic (Must only run after both orders and order_items insert succeed)
       setIsSuccess(true);
       clearCart(userId);
+      setCreatedOrderId(order.id);
+      setShowConfirmModal(true);
       toast.success('Pesanan berhasil dibuat');
-      router.push(`/payment/${order.id}`);
     } catch (error: any) {
       console.error('Full checkout error:', error);
       toast.error(error.message || 'Gagal membuat pesanan, silakan coba lagi');
@@ -303,6 +306,44 @@ export function CheckoutView({ userId, profile, storeSettings }: CheckoutViewPro
            </div>
         </div>
       </form>
+
+      {showConfirmModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl flex flex-col space-y-6 animate-in fade-in zoom-in-95 duration-200">
+            <div className="text-center space-y-2">
+              <div className="w-16 h-16 bg-green-50 text-green-600 rounded-full flex items-center justify-center mx-auto text-3xl">
+                🎉
+              </div>
+              <h3 className="text-xl font-bold text-gray-900">Pesanan Berhasil Dibuat!</h3>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                Segera lakukan pembayaran untuk memproses pesanan Anda.
+              </p>
+            </div>
+
+            <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl text-amber-800 text-sm leading-relaxed">
+              <span className="font-bold block mb-1 text-sm text-amber-900">⚠️ Perhatian:</span>
+              Setelah melakukan pembayaran, pesanan tidak dapat dibatalkan. Pastikan pesanan Anda sudah benar sebelum membayar.
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={() => router.push(`/payment/${createdOrderId}`)}
+                className="w-full bg-[#C96A3D] text-white py-3 rounded-xl font-bold text-center hover:bg-orange-700 transition"
+              >
+                Lanjut ke Pembayaran
+              </button>
+              <button
+                type="button"
+                onClick={() => router.push('/keranjang?tab=orders')}
+                className="w-full bg-gray-50 text-gray-700 py-3 rounded-xl font-bold text-center hover:bg-gray-100 transition border border-gray-200"
+              >
+                Kembali ke Pesanan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
