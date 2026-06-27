@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { addDays, format, isAfter, setHours, setMinutes } from 'date-fns';
-import { createOrder } from './actions';
+import { createClient as createClientComponentClient } from '@/lib/supabase/client';
 import { Loader2 } from 'lucide-react';
 import { normalizePhone } from '@/lib/phone';
 
@@ -23,12 +23,15 @@ export function CheckoutView({ userId, profile, storeSettings }: CheckoutViewPro
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
   
   const cartItems = useCartStore((state) => (userId ? state.itemsByUserId[userId] : undefined) || EMPTY_ARRAY);
   const getCartTotal = useCartStore((state) => state.getCartTotal);
   const clearCart = useCartStore((state) => state.clearCart);
   
   const total = getCartTotal(userId);
+
+  const supabase = createClientComponentClient();
 
   // Form states
   const [name, setName] = useState(profile?.full_name || '');
@@ -56,12 +59,12 @@ export function CheckoutView({ userId, profile, storeSettings }: CheckoutViewPro
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
-    if (cartItems.length === 0) {
+    if (cartItems.length === 0 && !isSuccess) {
       router.replace('/cart');
     }
-  }, [cartItems, router]);
+  }, [cartItems, router, isSuccess]);
 
-  if (!mounted || cartItems.length === 0) return null;
+  if (!mounted || (cartItems.length === 0 && !isSuccess)) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,31 +83,89 @@ export function CheckoutView({ userId, profile, storeSettings }: CheckoutViewPro
 
     try {
       setSubmitting(true);
-      const res = await createOrder({
-        customer_id: userId,
-        customer_name: name,
-        customer_phone: phone, // Do not change how it is stored
-        pickup_date: pickupDate,
-        pickup_address: storeSettings?.pickup_address || 'Alamat tidak tersedia',
-        notes: notes,
-        subtotal: total,
-        total_amount: total,
-        items: cartItems.map(i => ({
-          product_id: i.product_id,
-          name: i.name,
-          price: i.price,
-          quantity: i.quantity
-        }))
-      });
 
-      if (res.success) {
-        clearCart(userId);
-        toast.success('Pesanan berhasil dibuat');
-        router.push(`/payment/${res.orderId}`);
+      // 1. Generate Order Number
+      // Format: JP-YYYYMMDD-XXXX
+      const today = new Date();
+      const dateStr = today.getFullYear().toString() + 
+                     (today.getMonth() + 1).toString().padStart(2, '0') + 
+                     today.getDate().toString().padStart(2, '0');
+      
+      const { data: latestOrders, error: latestError } = await supabase
+        .from('orders')
+        .select('order_number')
+        .like('order_number', `JP-${dateStr}-%`)
+        .order('order_number', { ascending: false })
+        .limit(1);
+
+      if (latestError) throw latestError;
+
+      let seq = 1;
+      if (latestOrders && latestOrders.length > 0) {
+        const lastNum = latestOrders[0].order_number.split('-').pop();
+        if (lastNum) {
+          seq = parseInt(lastNum, 10) + 1;
+        }
       }
-    } catch (error) {
-      console.error(error);
-      toast.error('Gagal membuat pesanan, silakan coba lagi');
+
+      const orderNumber = `JP-${dateStr}-${seq.toString().padStart(4, '0')}`;
+
+      // 2. Insert Order
+      const { data: order, error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          order_number: orderNumber,
+          customer_id: userId,
+          customer_name: name,
+          customer_phone: phone,
+          pickup_date: pickupDate,
+          pickup_address: storeSettings?.pickup_address || 'Alamat tidak tersedia',
+          notes: notes,
+          status: 'pending_payment',
+          subtotal: total,
+          total_amount: total,
+        })
+        .select('id')
+        .single();
+
+      if (orderError) throw orderError;
+      if (!order) throw new Error('Gagal mendapatkan ID pesanan setelah berhasil dibuat.');
+
+      // 3. Insert Order Items (Must use same authenticated client and happen after orders insert succeeds)
+      const orderItemsData = cartItems.map(item => ({
+        order_id: order.id,
+        product_id: item.product_id,
+        product_name: item.name,
+        product_price: item.price,
+        quantity: item.quantity,
+        subtotal: item.price * item.quantity,
+      }));
+
+      const { error: itemsError } = await supabase
+        .from('order_items')
+        .insert(orderItemsData);
+
+      if (itemsError) throw itemsError;
+
+      // Create first history record
+      const { error: historyError } = await supabase
+        .from('order_status_history')
+        .insert({
+          order_id: order.id,
+          new_status: 'pending_payment',
+          note: 'Pesanan dibuat'
+        });
+      
+      if (historyError) throw historyError;
+
+      // 4. Check cart clear logic (Must only run after both orders and order_items insert succeed)
+      setIsSuccess(true);
+      clearCart(userId);
+      toast.success('Pesanan berhasil dibuat');
+      router.push(`/payment/${order.id}`);
+    } catch (error: any) {
+      console.error('Full checkout error:', error);
+      toast.error(error.message || 'Gagal membuat pesanan, silakan coba lagi');
       setSubmitting(false);
     }
   };
