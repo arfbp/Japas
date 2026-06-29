@@ -10,6 +10,8 @@ import imageCompression from 'browser-image-compression';
 
 import { generateWhatsAppMessage, getWhatsAppURL } from '@/lib/whatsapp';
 import { normalizePhone } from '@/lib/phone';
+import { validateImageFile } from '@/lib/validate-file';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 interface PaymentViewProps {
   order: any;
@@ -30,12 +32,13 @@ export function PaymentView({ order, storeSettings, user, existingProof }: Payme
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.match(/image\/(jpeg|png|webp)/)) {
-      return toast.error('Format gambar tidak didukung. Gunakan JPG, PNG, atau WEBP');
+    if (!checkRateLimit(`${user.id}:${order.id}:upload`, 3, 3600000)) {
+      return toast.error('Terlalu banyak percobaan upload');
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      return toast.error('Ukuran file terlalu besar (Maksimal 5MB)');
+    const validation = await validateImageFile(file);
+    if (!validation.valid) {
+      return toast.error(validation.error);
     }
 
     try {

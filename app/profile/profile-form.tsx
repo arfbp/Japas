@@ -10,6 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
+import { sanitizeText } from '@/lib/sanitize';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 const profileSchema = z.object({
   full_name: z.string().min(2, 'Nama minimal 2 karakter').max(100, 'Nama maksimal 100 karakter'),
@@ -55,6 +57,10 @@ export default function ProfileForm({ profile, email }: ProfileFormProps) {
   });
 
   const onSubmit = async (data: ProfileFormValues) => {
+    if (!checkRateLimit(`${profile.id}:profile`, 10, 3600000)) {
+      return toast.error('Terlalu banyak perubahan profil, coba lagi nanti');
+    }
+
     setIsLoading(true);
     try {
       const supabase = createClient();
@@ -64,8 +70,8 @@ export default function ProfileForm({ profile, email }: ProfileFormProps) {
       const { error } = await supabase
         .from('profiles')
         .update({ 
-          full_name: data.full_name,
-          phone_number: formattedPhone 
+          full_name: sanitizeText(data.full_name),
+          phone_number: sanitizeText(formattedPhone) 
         })
         .eq('id', profile.id);
 

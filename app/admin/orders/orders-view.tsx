@@ -89,7 +89,14 @@ export function AdminOrdersView({ adminId, storeSettings }: AdminOrdersViewProps
     const matchesSearch = o.order_number.toLowerCase().includes(search.toLowerCase()) || 
                           o.customer_phone.includes(search) ||
                           o.customer_name.toLowerCase().includes(search.toLowerCase());
-    const matchesFilter = filter === 'all' || o.status === filter;
+    
+    let matchesFilter = false;
+    if (filter === 'all') {
+      matchesFilter = o.status !== 'cancelled';
+    } else {
+      matchesFilter = o.status === filter;
+    }
+    
     return matchesSearch && matchesFilter;
   });
 

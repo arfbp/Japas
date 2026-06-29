@@ -12,6 +12,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { createClient } from '@/lib/supabase/client';
 import { resizeImage } from '@/lib/image-utils';
+import { validateImageFile } from '@/lib/validate-file';
+import { sanitizeText } from '@/lib/sanitize';
 import Image from 'next/image';
 
 const productSchema = z.object({
@@ -45,11 +47,12 @@ export default function ProductForm({ product }: { product?: any }) {
     },
   });
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error('Ukuran file maksimal 5MB');
+      const validation = await validateImageFile(file);
+      if (!validation.valid) {
+        toast.error(validation.error);
         return;
       }
       setImageFile(file);
@@ -89,8 +92,8 @@ export default function ProductForm({ product }: { product?: any }) {
       }
 
       const productData = {
-        name: data.name,
-        description: data.description,
+        name: sanitizeText(data.name),
+        description: sanitizeText(data.description),
         price: data.price,
         status: data.status,
         sort_order: data.sort_order,

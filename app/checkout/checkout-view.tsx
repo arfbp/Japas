@@ -10,6 +10,8 @@ import { addDays, format, isAfter, setHours, setMinutes } from 'date-fns';
 import { createClient as createClientComponentClient } from '@/lib/supabase/client';
 import { Loader2 } from 'lucide-react';
 import { normalizePhone } from '@/lib/phone';
+import { sanitizeText } from '@/lib/sanitize';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 interface CheckoutViewProps {
   userId: string;
@@ -95,6 +97,10 @@ export function CheckoutView({ userId, profile, storeSettings }: CheckoutViewPro
     const qtyValid = cartItems.every(item => item.quantity >= 30);
     if (!qtyValid) return toast.error('Minimum pemesanan 30 quantity per kue');
 
+    if (!checkRateLimit(`${userId}:checkout`, 5, 3600000)) {
+      return toast.error('Terlalu banyak pesanan, coba lagi dalam 1 jam');
+    }
+
     try {
       setSubmitting(true);
 
@@ -130,11 +136,11 @@ export function CheckoutView({ userId, profile, storeSettings }: CheckoutViewPro
         .insert({
           order_number: orderNumber,
           customer_id: userId,
-          customer_name: name,
-          customer_phone: phone,
+          customer_name: sanitizeText(name),
+          customer_phone: sanitizeText(phone),
           pickup_date: pickupDate,
-          pickup_address: storeSettings?.pickup_address || 'Alamat tidak tersedia',
-          notes: notes,
+          pickup_address: sanitizeText(storeSettings?.pickup_address || 'Alamat tidak tersedia'),
+          notes: sanitizeText(notes),
           status: 'pending_payment',
           subtotal: total,
           total_amount: total,

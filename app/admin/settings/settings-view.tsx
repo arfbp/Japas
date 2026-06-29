@@ -6,6 +6,8 @@ import { createClient as createClientComponentClient } from '@/lib/supabase/clie
 import { toast } from 'sonner';
 import { Loader2, Plus, Edit2, Trash2, X, Store, Image as ImageIcon } from 'lucide-react';
 import Image from 'next/image';
+import { validateImageFile } from '@/lib/validate-file';
+import { sanitizeText } from '@/lib/sanitize';
 
 export function SettingsView({ initialSettings, initialAnnouncements }: { initialSettings: any, initialAnnouncements: any[] }) {
   const router = useRouter();
@@ -39,6 +41,12 @@ export function SettingsView({ initialSettings, initialAnnouncements }: { initia
     const file = e.target.files?.[0];
     if (!file) return;
 
+    const validation = await validateImageFile(file);
+    if (!validation.valid) {
+      toast.error(validation.error);
+      return;
+    }
+
     setIsUploading(true);
     try {
       const fileExt = file.name.split('.').pop();
@@ -71,9 +79,9 @@ export function SettingsView({ initialSettings, initialAnnouncements }: { initia
     setIsSavingStore(true);
     try {
       const settingsData = {
-        store_name: storeName,
-        pickup_address: pickupAddress,
-        whatsapp_admin: whatsappAdmin,
+        store_name: sanitizeText(storeName),
+        pickup_address: sanitizeText(pickupAddress),
+        whatsapp_admin: sanitizeText(whatsappAdmin),
         qris_image_url: qrisUrl,
         is_store_open: isStoreOpen,
         cutoff_time: cutoffTime.length === 5 ? `${cutoffTime}:00` : cutoffTime, // ensure HH:mm:ss format
@@ -124,8 +132,8 @@ export function SettingsView({ initialSettings, initialAnnouncements }: { initia
     setIsSavingAnnouncement(true);
     try {
       const payload: any = {
-        title: aTitle,
-        content: aContent,
+        title: sanitizeText(aTitle),
+        content: sanitizeText(aContent),
         is_active: aActive,
         start_date: aStart || null,
         end_date: aEnd || null,

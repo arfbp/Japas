@@ -1,23 +1,9 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { revalidatePath } from 'next/cache';
 import { addDays, isAfter, setHours, setMinutes, parseISO } from 'date-fns';
-
-function createAdminClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) {
-    throw new Error('Credentials for admin operations are missing');
-  }
-  return createSupabaseClient(url, key, {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false,
-    }
-  });
-}
+import { createAdminClient } from '@/lib/supabase-admin';
 
 export async function cancelOrder(orderId: string) {
   try {
