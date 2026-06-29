@@ -1,19 +1,17 @@
 import { ReactNode } from 'react';
-import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { UserMenu } from './user-menu';
 import { redirect } from 'next/navigation';
 import { PageTransition } from './page-transition';
-import { Store } from 'lucide-react';
+import { AdminNav } from './admin-nav';
 
 export async function AdminLayout({ children }: { children: ReactNode }) {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
     return (
       <div className="min-h-[100dvh] flex flex-col items-center bg-gray-50">
         <header className="w-full h-14 sm:h-16 bg-gray-900 text-white flex items-center px-4 md:px-8 justify-between sticky top-0 z-50">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <Store className="w-5 h-5 text-gray-400" />
-            <Link href="/admin/orders" className="font-bold text-white text-[17px] sm:text-lg">Admin Panel</Link>
+          <div className="flex items-center gap-6">
+            <AdminNav />
           </div>
         </header>
         <main className="flex-1 w-full max-w-7xl px-4 md:px-8 py-6 flex items-center justify-center">
@@ -42,27 +40,11 @@ export async function AdminLayout({ children }: { children: ReactNode }) {
     <div className="min-h-[100dvh] flex flex-col flex-1 items-center bg-gray-50 w-full">
       <header className="w-full h-14 sm:h-16 bg-gray-900 text-white flex items-center px-4 md:px-8 justify-between sticky top-0 z-50">
         <div className="flex items-center gap-6">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <Store className="w-5 h-5 text-gray-400" />
-            <Link href="/admin/orders" className="font-bold text-white text-[17px] sm:text-lg">Admin Panel</Link>
-          </div>
-          <nav className="hidden md:flex gap-4">
-            <Link href="/admin/orders" className="text-sm text-gray-300 hover:text-white transition-colors">Kelola Pesanan</Link>
-            <Link href="/admin/products" className="text-sm text-gray-300 hover:text-white transition-colors">Kelola Produk</Link>
-            <Link href="/admin/settings" className="text-sm text-gray-300 hover:text-white transition-colors">Pengaturan Toko</Link>
-            <Link href="/" className="text-sm text-gray-300 hover:text-white transition-colors">Lihat Toko</Link>
-          </nav>
+          <AdminNav />
         </div>
         <UserMenu profile={profile} email={user?.email!} />
       </header>
       
-      {/* Mobile nav items */}
-      <div className="w-full bg-gray-800 px-4 md:px-8 py-2 md:hidden flex gap-4 overflow-x-auto">
-         <Link href="/admin/orders" className="text-sm text-gray-300 whitespace-nowrap pt-1 pb-1">Kelola Pesanan</Link>
-         <Link href="/admin/products" className="text-sm text-gray-300 whitespace-nowrap pt-1 pb-1">Kelola Produk</Link>
-         <Link href="/admin/settings" className="text-sm text-gray-300 whitespace-nowrap pt-1 pb-1">Pengaturan Toko</Link>
-         <Link href="/" className="text-sm text-gray-300 whitespace-nowrap pt-1 pb-1">Lihat Toko</Link>
-      </div>
       <main className="flex-1 w-full max-w-7xl px-4 md:px-8 py-6">
         <PageTransition className="flex-1 flex flex-col w-full">
           {children}
