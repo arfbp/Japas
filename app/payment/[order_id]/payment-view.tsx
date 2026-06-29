@@ -60,6 +60,10 @@ export function PaymentView({ order, storeSettings, user, existingProof }: Payme
       const fileName = `${order.id}.webp`;
       const filePath = `${user.id}/${fileName}`;
       
+      console.log('upload path:', filePath)
+      console.log('user id:', user.id)
+      console.log('bucket:', 'payment-proofs')
+
       // Upload to storage
       const { data: storageData, error: storageError } = await supabase.storage
         .from('payment-proofs')
