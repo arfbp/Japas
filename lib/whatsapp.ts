@@ -9,7 +9,7 @@ export const formatWA = (phone: string) => {
   return cleaned;
 };
 
-export const generateWhatsAppMessage = (status: string, order: any, actionType: 'customer_to_admin' | 'admin_to_customer' = 'admin_to_customer') => {
+export const generateWhatsAppMessage = (status: string, order: any, actionType: 'customer_to_admin' | 'admin_to_customer' = 'admin_to_customer', storeName: string = 'Jajanan Pasar') => {
   if (actionType === 'customer_to_admin') {
     if (status === 'pending_payment') {
       return `Halo Admin, saya ingin melakukan konfirmasi.
@@ -78,7 +78,7 @@ Silakan datang ke lokasi pengambilan.`;
     case 'completed':
       return `Pesanan Anda telah selesai.
 
-Terima kasih telah memesan di Jajanan Pasar.`;
+Terima kasih telah memesan di ${storeName}.`;
 
     case 'cancelled':
       return `Pesanan Anda telah dibatalkan.

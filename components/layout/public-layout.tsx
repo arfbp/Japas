@@ -4,14 +4,24 @@ import { Footer } from './footer';
 import { StoreStatus } from '../store-status';
 import { PageTransition } from './page-transition';
 import { Store } from 'lucide-react';
+import { createClient } from '@/lib/supabase/server';
 
-export function PublicLayout({ children }: { children: ReactNode }) {
+export async function PublicLayout({ children }: { children: ReactNode }) {
+  let storeName = 'Jajanan Pasar';
+  if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    const supabase = await createClient();
+    const { data: storeSettings } = await supabase.from('store_settings').select('store_name').eq('singleton_key', true).single();
+    if (storeSettings?.store_name) {
+      storeName = storeSettings.store_name;
+    }
+  }
+
   return (
     <div className="min-h-[100dvh] flex flex-col items-center bg-[#FFF7ED]">
       <header className="w-full h-14 sm:h-16 bg-white/80 backdrop-blur-md border-b border-orange-100 flex items-center px-4 md:px-8 justify-between sticky top-0 z-50">
         <div className="flex items-center gap-2 sm:gap-3">
           <Store className="w-5 h-5 text-[#C96A3D]" />
-          <Link href="/" className="font-bold text-[#C96A3D] text-[17px] sm:text-lg">Jajanan Pasar</Link>
+          <Link href="/" className="font-bold text-[#C96A3D] text-[17px] sm:text-lg">{storeName}</Link>
           <StoreStatus isOpen={true} className="hidden sm:inline-flex ml-2" />
         </div>
         <Link href="/login" className="text-sm font-semibold text-gray-600 hover:text-[#C96A3D]">Masuk</Link>

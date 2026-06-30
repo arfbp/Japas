@@ -7,10 +7,15 @@ import Image from 'next/image';
 export default async function HomePage() {
   let role = 'guest';
   let featuredProducts: any[] = [];
+  let storeName = 'Jajanan Pasar';
 
   if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
+    const { data: storeSettings } = await supabase.from('store_settings').select('store_name').eq('singleton_key', true).single();
+    if (storeSettings?.store_name) {
+      storeName = storeSettings.store_name;
+    }
 
     if (user) {
       const { data } = await supabase.from('profiles').select('role').eq('id', user.id).single();
@@ -42,7 +47,7 @@ export default async function HomePage() {
             <span className="text-3xl sm:text-4xl translate-y-px">🥟</span>
           </div>
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-gray-900 leading-[1.2] max-w-2xl mx-auto px-4">
-            Pesan Kue Jajanan Pasar<br className="hidden sm:block" /> untuk Acara dan Kebutuhan Anda
+            Pesan Kue {storeName}<br className="hidden sm:block" /> untuk Acara dan Kebutuhan Anda
           </h1>
           <p className="text-[15px] sm:text-lg text-gray-600 max-w-lg mx-auto leading-relaxed px-4">
             Minimal 30 pcs per jenis kue. Mudah dipesan, bayar via QRIS, dan ambil sesuai jadwal.

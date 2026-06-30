@@ -24,7 +24,7 @@ export default async function AdminOrdersPage() {
   // Get Store Settings
   const { data: storeSettings } = await supabase
     .from('store_settings')
-    .select('whatsapp_admin')
+    .select('whatsapp_admin, store_name')
     .single();
 
   return (

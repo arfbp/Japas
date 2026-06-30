@@ -23,9 +23,14 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
 
   const { id } = await params;
 
+  const { data: storeSettings } = await supabase
+    .from('store_settings')
+    .select('whatsapp_admin, store_name')
+    .single();
+
   return (
     <AdminLayout>
-      <AdminOrderDetailView orderId={id} adminId={user.id} />
+      <AdminOrderDetailView orderId={id} adminId={user.id} storeSettings={storeSettings} />
     </AdminLayout>
   );
 }

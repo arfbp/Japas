@@ -80,7 +80,7 @@ export function AdminOrdersView({ adminId, storeSettings }: AdminOrdersViewProps
   };
 
   const openCustomerWA = (order: any, newStatus: string) => {
-    const msg = generateWhatsAppMessage(newStatus, order, 'admin_to_customer');
+    const msg = generateWhatsAppMessage(newStatus, order, 'admin_to_customer', storeSettings?.store_name || 'Jajanan Pasar');
     const url = getWhatsAppURL(order.customer_phone, msg);
     window.open(url, '_blank');
   };

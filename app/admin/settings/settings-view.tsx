@@ -13,6 +13,7 @@ export function SettingsView({ initialSettings, initialAnnouncements }: { initia
   const router = useRouter();
   const [isSavingStore, setIsSavingStore] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
   
   // Store Settings State
   const [storeName, setStoreName] = useState(initialSettings?.store_name || '');
@@ -96,6 +97,7 @@ export function SettingsView({ initialSettings, initialAnnouncements }: { initia
       if (error) throw error;
 
       toast.success('Pengaturan toko berhasil disimpan');
+      setIsEditMode(false);
       router.refresh();
     } catch (error: any) {
       toast.error('Gagal menyimpan pengaturan: ' + error.message);
@@ -201,9 +203,19 @@ export function SettingsView({ initialSettings, initialAnnouncements }: { initia
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Store Settings Form */}
         <div className="bg-white p-6 rounded-[16px] shadow-sm border border-gray-100 flex flex-col gap-5">
-          <div className="flex items-center gap-2 mb-2">
-            <Store className="w-5 h-5 text-gray-400" />
-            <h2 className="text-lg font-bold text-gray-900">Informasi Umum</h2>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <Store className="w-5 h-5 text-gray-400" />
+              <h2 className="text-lg font-bold text-gray-900">Informasi Umum</h2>
+            </div>
+            {!isEditMode && (
+              <button 
+                onClick={() => setIsEditMode(true)}
+                className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-[6px] hover:bg-gray-200 transition flex items-center gap-1.5"
+              >
+                <Edit2 className="w-4 h-4" /> Edit
+              </button>
+            )}
           </div>
 
           <div>
@@ -212,7 +224,8 @@ export function SettingsView({ initialSettings, initialAnnouncements }: { initia
               type="text" 
               value={storeName} 
               onChange={e => setStoreName(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-200 rounded-[8px] focus:ring-2 focus:ring-[#C96A3D] focus:border-transparent outline-none"
+              disabled={!isEditMode}
+              className="w-full px-4 py-2 border border-gray-200 rounded-[8px] focus:ring-2 focus:ring-[#C96A3D] focus:border-transparent outline-none disabled:bg-gray-50 disabled:text-gray-500"
               placeholder="Contoh: Toko Kue ABC"
             />
           </div>
@@ -223,7 +236,8 @@ export function SettingsView({ initialSettings, initialAnnouncements }: { initia
               value={pickupAddress} 
               onChange={e => setPickupAddress(e.target.value)}
               rows={3}
-              className="w-full px-4 py-2 border border-gray-200 rounded-[8px] focus:ring-2 focus:ring-[#C96A3D] focus:border-transparent outline-none"
+              disabled={!isEditMode}
+              className="w-full px-4 py-2 border border-gray-200 rounded-[8px] focus:ring-2 focus:ring-[#C96A3D] focus:border-transparent outline-none disabled:bg-gray-50 disabled:text-gray-500"
               placeholder="Alamat lengkap toko untuk customer mengambil pesanan"
             />
           </div>
@@ -234,7 +248,8 @@ export function SettingsView({ initialSettings, initialAnnouncements }: { initia
               type="text" 
               value={whatsappAdmin} 
               onChange={e => setWhatsappAdmin(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-200 rounded-[8px] focus:ring-2 focus:ring-[#C96A3D] focus:border-transparent outline-none"
+              disabled={!isEditMode}
+              className="w-full px-4 py-2 border border-gray-200 rounded-[8px] focus:ring-2 focus:ring-[#C96A3D] focus:border-transparent outline-none disabled:bg-gray-50 disabled:text-gray-500"
               placeholder="Contoh: +628123456789"
             />
           </div>
@@ -249,13 +264,15 @@ export function SettingsView({ initialSettings, initialAnnouncements }: { initia
                   <ImageIcon className="w-8 h-8 text-gray-300" />
                 )}
               </div>
-              <div className="flex flex-col gap-2">
-                <label className="cursor-pointer px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-[8px] transition text-center inline-block">
-                  {isUploading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 'Pilih Gambar'}
-                  <input type="file" className="hidden" accept="image/jpeg,image/png,image/webp" onChange={handleQrisUpload} disabled={isUploading} />
-                </label>
-                <p className="text-xs text-gray-500">Format: JPG, PNG, WebP.</p>
-              </div>
+              {isEditMode && (
+                <div className="flex flex-col gap-2">
+                  <label className="cursor-pointer px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-[8px] transition text-center inline-block">
+                    {isUploading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 'Pilih Gambar'}
+                    <input type="file" className="hidden" accept="image/jpeg,image/png,image/webp" onChange={handleQrisUpload} disabled={isUploading} />
+                  </label>
+                  <p className="text-xs text-gray-500">Format: JPG, PNG, WebP.</p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -268,8 +285,8 @@ export function SettingsView({ initialSettings, initialAnnouncements }: { initia
                 <p className="text-xs text-gray-500">Buka atau tutup sementara</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" className="sr-only peer" checked={isStoreOpen} onChange={e => setIsStoreOpen(e.target.checked)} />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#C96A3D]"></div>
+                <input type="checkbox" className="sr-only peer" checked={isStoreOpen} onChange={e => setIsStoreOpen(e.target.checked)} disabled={!isEditMode} />
+                <div className={`w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#C96A3D] ${!isEditMode ? 'opacity-60 cursor-not-allowed' : ''}`}></div>
               </label>
             </div>
 
@@ -280,7 +297,8 @@ export function SettingsView({ initialSettings, initialAnnouncements }: { initia
                   type="time" 
                   value={cutoffTime.substring(0,5)} 
                   onChange={e => setCutoffTime(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-[8px] focus:ring-2 focus:ring-[#C96A3D] focus:border-transparent outline-none"
+                  disabled={!isEditMode}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-[8px] focus:ring-2 focus:ring-[#C96A3D] focus:border-transparent outline-none disabled:bg-gray-50 disabled:text-gray-500"
                 />
               </div>
               <div>
@@ -290,19 +308,40 @@ export function SettingsView({ initialSettings, initialAnnouncements }: { initia
                   value={leadDays} 
                   onChange={e => setLeadDays(parseInt(e.target.value))}
                   min="0"
-                  className="w-full px-4 py-2 border border-gray-200 rounded-[8px] focus:ring-2 focus:ring-[#C96A3D] focus:border-transparent outline-none"
+                  disabled={!isEditMode}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-[8px] focus:ring-2 focus:ring-[#C96A3D] focus:border-transparent outline-none disabled:bg-gray-50 disabled:text-gray-500"
                 />
               </div>
             </div>
           </div>
 
-          <button 
-            onClick={handleSaveStore}
-            disabled={isSavingStore}
-            className="w-full h-11 bg-[#C96A3D] text-white rounded-[8px] font-semibold flex items-center justify-center hover:bg-[#b05a30] transition disabled:opacity-70 mt-2"
-          >
-            {isSavingStore ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Simpan Pengaturan'}
-          </button>
+          {isEditMode && (
+            <div className="flex gap-3 mt-2">
+              <button 
+                onClick={() => {
+                  setStoreName(initialSettings?.store_name || '');
+                  setPickupAddress(initialSettings?.pickup_address || '');
+                  setWhatsappAdmin(initialSettings?.whatsapp_admin || '');
+                  setQrisUrl(initialSettings?.qris_image_url || '');
+                  setIsStoreOpen(initialSettings?.is_store_open ?? true);
+                  setCutoffTime(initialSettings?.cutoff_time || '18:00:00');
+                  setLeadDays(initialSettings?.minimum_lead_days || 3);
+                  setIsEditMode(false);
+                }}
+                disabled={isSavingStore}
+                className="flex-1 h-11 bg-gray-100 text-gray-700 rounded-[8px] font-semibold flex items-center justify-center hover:bg-gray-200 transition disabled:opacity-70"
+              >
+                Batal
+              </button>
+              <button 
+                onClick={handleSaveStore}
+                disabled={isSavingStore}
+                className="flex-1 h-11 bg-[#C96A3D] text-white rounded-[8px] font-semibold flex items-center justify-center hover:bg-[#b05a30] transition disabled:opacity-70"
+              >
+                {isSavingStore ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Simpan'}
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Announcements List */}

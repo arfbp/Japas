@@ -1,21 +1,8 @@
-'use client';
-
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { ShieldAlert } from 'lucide-react';
 import { PublicLayout } from '@/components/layout/public-layout';
+import { RedirectTimer } from './redirect-timer';
 
 export default function ForbiddenPage() {
-  const router = useRouter();
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      router.push('/');
-    }, 3000);
-
-    return () => clearTimeout(timer);
-  }, [router]);
-
   return (
     <PublicLayout>
       <div className="flex flex-col flex-1 items-center justify-center p-4 min-h-[60vh]">
@@ -27,6 +14,7 @@ export default function ForbiddenPage() {
           <p className="text-gray-500">Anda tidak memiliki akses ke halaman ini. Mengalihkan ke beranda...</p>
         </div>
       </div>
+      <RedirectTimer />
     </PublicLayout>
   );
 }

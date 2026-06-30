@@ -6,10 +6,17 @@ import { GlobalAnnouncements } from '@/components/global-announcements';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
-export const metadata: Metadata = {
-  title: 'Jajanan Pasar',
-  description: 'Platform pemesanan kue jajanan pasar',
-};
+import { createClient } from '@/lib/supabase/server';
+
+export async function generateMetadata(): Promise<Metadata> {
+  const supabase = await createClient();
+  const { data } = await supabase.from('store_settings').select('store_name').eq('singleton_key', true).single();
+  const storeName = data?.store_name || 'Jajanan Pasar';
+  return {
+    title: storeName,
+    description: `Platform pemesanan kue ${storeName}`,
+  };
+}
 
 import { AuthSync } from '@/components/auth-sync';
 

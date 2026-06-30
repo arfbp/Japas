@@ -12,9 +12,10 @@ import Link from 'next/link';
 interface AdminOrderDetailViewProps {
   orderId: string;
   adminId: string;
+  storeSettings?: any;
 }
 
-export function AdminOrderDetailView({ orderId, adminId }: AdminOrderDetailViewProps) {
+export function AdminOrderDetailView({ orderId, adminId, storeSettings }: AdminOrderDetailViewProps) {
   const supabase = createClient();
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -80,7 +81,7 @@ export function AdminOrderDetailView({ orderId, adminId }: AdminOrderDetailViewP
 
   const openCustomerWA = (newStatus: string) => {
     if (!order) return;
-    const msg = generateWhatsAppMessage(newStatus, order, 'admin_to_customer');
+    const msg = generateWhatsAppMessage(newStatus, order, 'admin_to_customer', storeSettings?.store_name || 'Jajanan Pasar');
     const normalizedCustomerPhone = normalizePhone(order.customer_phone);
     const url = getWhatsAppURL(normalizedCustomerPhone, msg);
     window.open(url, '_blank');
