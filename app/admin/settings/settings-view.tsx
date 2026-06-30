@@ -26,6 +26,7 @@ export function SettingsView({ initialSettings, initialAnnouncements }: { initia
 
   // Announcements State
   const [announcements, setAnnouncements] = useState(initialAnnouncements || []);
+  
   const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] = useState(false);
   const [editingAnnouncement, setEditingAnnouncement] = useState<any>(null);
   

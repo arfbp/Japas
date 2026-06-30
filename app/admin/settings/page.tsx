@@ -26,7 +26,7 @@ export default async function AdminSettingsPage() {
   const { data: storeSettings } = await supabase
     .from('store_settings')
     .select('*')
-    .eq('singleton_key', 'singleton')
+    .eq('singleton_key', true)
     .single();
 
   // Get announcements
